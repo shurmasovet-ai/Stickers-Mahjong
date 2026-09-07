@@ -7,7 +7,6 @@
     <title>Stickers Mahjong</title>
     
     <!-- === УНИВЕРСАЛЬНЫЕ SDK ПЛАТФОРМ === -->
-    <!-- Игра сама поймет, где она запущена, и активирует нужный скрипт -->
     <script src="https://yandex.ru/games/sdk/v2"></script>
     <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
@@ -214,11 +213,7 @@
     <div id="shop-modal">
         <h2 id="txt-shop-title">🛒 МАГАЗИН</h2>
         <div id="shop-coins-header">Ваши монеты: 💰 0</div>
-        
-        <button id="btn-open-wheel" class="btn-wheel" style="background: linear-gradient(180deg, #e74c3c, #c0392b); border-color: #ff7675; box-shadow: 0 6px 0 #962d22, 0 10px 15px rgba(0,0,0,0.7); margin-bottom: 20px;">
-            🎡 Колесо Фортуны
-        </button>
-
+        <button id="btn-open-wheel" class="btn-wheel" style="background: linear-gradient(180deg, #e74c3c, #c0392b); border-color: #ff7675; box-shadow: 0 6px 0 #962d22, 0 10px 15px rgba(0,0,0,0.7); margin-bottom: 20px;">🎡 Колесо Фортуны</button>
         <div id="shop-content">
             <div class="shop-section-title" id="txt-shop-bg-title">🎨 Красивые Фоны</div>
             <div id="shop-bgs-container"></div>
@@ -250,9 +245,7 @@
             </div>
             <button id="btn-next-level" class="btn-arrow">▶</button>
         </div>
-        
         <button id="btn-play" class="btn-massive">▶ ИГРАТЬ</button>
-        
         <div style="display: flex; flex-direction: column; gap: 10px; z-index: 2; margin-bottom: 10px; width: 220px;">
             <button id="btn-open-shop" class="btn-menu-small" style="margin-bottom: 0; background: rgba(155, 89, 182, 0.3); color: #e0aaff; border-color: #9b59b6;">🛒 Магазин & Бонусы</button>
             <button id="btn-leaderboard" class="btn-menu-small" style="margin-bottom: 0; color: #f1c40f; border-color: #f1c40f;">🏆 Рейтинг</button>
@@ -305,7 +298,6 @@
                     </div>
                     <button id="btn-hud-next" class="btn-hud-arrow">▶</button>
                 </div>
-                
                 <div class="stats-container">
                     <div id="hud-score" title="Ваши Очки (Рейтинг)">🏆 0</div>
                     <div id="hud-coins" title="Ваши Монеты (Для бустеров)">💰 0</div>
@@ -320,9 +312,7 @@
         <div id="game-board"></div>
 
         <div id="boosters-bar">
-            <button class="booster" id="btn-shuffle" style="background: linear-gradient(135deg, #e67e22, #d35400); border-color: #d35400;">
-                🎥<div class="b-cost" id="txt-booster-mix" style="color:#fff; text-shadow: none; font-size: 10px;">МИКС</div>
-            </button>
+            <button class="booster" id="btn-shuffle" style="background: linear-gradient(135deg, #e67e22, #d35400); border-color: #d35400;">🎥<div class="b-cost" id="txt-booster-mix" style="color:#fff; text-shadow: none; font-size: 10px;">МИКС</div></button>
             <button class="booster" id="bst-hint" data-unlock="2" data-cost="50">🔍<div class="b-cost">50</div><div class="b-lock" id="txt-lock-2">Ур.2</div></button>
             <button class="booster" id="bst-undo" data-unlock="4" data-cost="100">↩️<div class="b-cost">100</div><div class="b-lock" id="txt-lock-4">Ур.4</div></button>
             <button class="booster" id="bst-bomb" data-unlock="7" data-cost="300">💣<div class="b-cost">300</div><div class="b-lock" id="txt-lock-7">Ур.7</div></button>
@@ -336,13 +326,7 @@
     </div>
 
     <script>
-        // Глобальные переменные прогресса
-        let currentLevel = 1, unlockedLevel = 1, totalScore = 0, totalCoins = 0, comboCount = 0, lastMatchTime = 0, totalTilesForLevel = 0;
-        let activeTiles = [], firstTile = null; let matchHistory = []; let tutorialMode = false, tutorialPair = [];
-        let isGameLocked = false; window.isLevelCompleting = false; const COMBO_TIME_LIMIT = 4000; 
-        let isAnimating = false;
-
-        // --- 🌐 МУЛЬТИЯЗЫЧНОСТЬ (I18N) ---
+        // --- 1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И ДАННЫЕ ---
         const I18N = {
             ru: {
                 langName: "Русский", play: "▶ ИГРАТЬ", shopBtn: "🛒 Магазин & Бонусы", leaderboard: "🏆 Рейтинг", settings: "⚙️ Настройки",
@@ -421,194 +405,12 @@
         const SUPPORTED_LANGS = ['ru', 'en', 'tr', 'es'];
         let currentLang = 'ru';
 
-        function t(key) {
-            return (I18N[currentLang] && I18N[currentLang][key]) || (I18N['ru'][key]) || key;
-        }
+        let currentLevel = 1, unlockedLevel = 1, totalScore = 0, totalCoins = 0, comboCount = 0, lastMatchTime = 0, totalTilesForLevel = 0;
+        let activeTiles = [], firstTile = null, matchHistory = [], tutorialMode = false, tutorialPair = [];
+        let isGameLocked = false, isAnimating = false;
+        window.isLevelCompleting = false; 
+        const COMBO_TIME_LIMIT = 4000; 
 
-        // --- 🔒 УНИВЕРСАЛЬНЫЙ АДАПТЕР ПЛАТФОРМ (Yandex + CrazyGames + VK Bridge) ---
-        const Platform = {
-            name: 'local',
-            sdk: null,
-            init: async function(langCallback) {
-                // 1. Платформа: ВКонтакте (VK Play / Mini Apps)
-                if (typeof vkBridge !== 'undefined' && window.location.search.includes('vk_')) {
-                    try {
-                        await vkBridge.send("VKWebAppInit");
-                        this.name = 'vk';
-                        this.sdk = vkBridge;
-                        console.log("VK SDK activated");
-                        
-                        let urlParams = new URLSearchParams(window.location.search);
-                        let vkLang = urlParams.get('language') || urlParams.get('lang');
-                        langCallback(vkLang);
-                        return;
-                    } catch(e) { console.warn("VK init failed", e); }
-                }
-
-                // 2. Платформа: CrazyGames
-                if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
-                    this.name = 'crazygames';
-                    this.sdk = window.CrazyGames.SDK;
-                    console.log("CrazyGames SDK activated");
-                    langCallback(null);
-                    return;
-                }
-                
-                // 3. Платформа: Яндекс Игры
-                if (typeof YaGames !== 'undefined') {
-                    try {
-                        this.sdk = await YaGames.init();
-                        this.name = 'yandex';
-                        console.log("Yandex SDK activated");
-                        
-                        let sdkLanguage = (this.sdk.environment && this.sdk.environment.i18n) ? this.sdk.environment.i18n.lang : null;
-                        langCallback(sdkLanguage);
-                        
-                        if (this.sdk.features && this.sdk.features.LoadingAPI) { 
-                            this.sdk.features.LoadingAPI.ready(); 
-                        }
-                        
-                        try {
-                            window.ysPlayer = await this.sdk.getPlayer({ scopes: false });
-                            let data = await window.ysPlayer.getData();
-                            SafeStorage.syncFromCloud(data);
-                        } catch(e) { console.warn("Yandex Player API err", e); }
-                        return;
-                    } catch(e) { console.warn("Yandex init error", e); }
-                }
-                
-                // 4. Локальный запуск (тестовый)
-                console.log("Local/Fallback environment");
-                langCallback(null);
-            },
-            gameplayStart: function() {
-                if (this.name === 'crazygames') { this.sdk.game.gameplayStart(); }
-            },
-            gameplayStop: function() {
-                if (this.name === 'crazygames') { this.sdk.game.gameplayStop(); }
-            },
-            showRewarded: function(callbacks) {
-                if (this.name === 'yandex' && this.sdk.adv) {
-                    this.sdk.adv.showRewardedVideo({
-                        callbacks: {
-                            onOpen: callbacks.onStart,
-                            onRewarded: callbacks.onReward,
-                            onClose: callbacks.onClose,
-                            onError: callbacks.onError || callbacks.onClose
-                        }
-                    });
-                } else if (this.name === 'crazygames') {
-                    this.sdk.ad.requestAd('rewarded', {
-                        adStarted: callbacks.onStart,
-                        adFinished: () => { callbacks.onReward(); callbacks.onClose(); },
-                        adError: (err) => { console.warn("CG Ad Error", err); if(callbacks.onError) callbacks.onError(); callbacks.onClose(); }
-                    });
-                } else if (this.name === 'vk') {
-                    if(callbacks.onStart) callbacks.onStart();
-                    this.sdk.send("VKWebAppShowNativeAds", {ad_format:"reward"})
-                        .then(data => {
-                            if (data.result) { if(callbacks.onReward) callbacks.onReward(); }
-                            else { if(callbacks.onError) callbacks.onError(); }
-                            if(callbacks.onClose) callbacks.onClose();
-                        })
-                        .catch(err => {
-                            console.warn("VK Ad Err", err);
-                            if(callbacks.onError) callbacks.onError();
-                            if(callbacks.onClose) callbacks.onClose();
-                        });
-                } else {
-                    const adScreen = document.getElementById('ad-screen');
-                    if(adScreen) adScreen.style.display = 'flex';
-                    if(callbacks.onStart) callbacks.onStart();
-                    setTimeout(() => {
-                        if(adScreen) adScreen.style.display = 'none';
-                        if(callbacks.onReward) callbacks.onReward();
-                        if(callbacks.onClose) callbacks.onClose();
-                    }, 1000);
-                }
-            }
-        };
-
-        document.addEventListener('contextmenu', event => event.preventDefault());
-
-        function initGameLanguageAndUI(sdkLang) {
-            let savedLang = SafeStorage.get('mahjong_lang');
-            if (savedLang && SUPPORTED_LANGS.includes(savedLang)) {
-                currentLang = savedLang;
-            } else if (sdkLang) {
-                let userLang = sdkLang.toLowerCase();
-                if (SUPPORTED_LANGS.includes(userLang)) { currentLang = userLang; } 
-                else if (userLang.startsWith('tr')) { currentLang = 'tr'; }
-                else if (userLang.startsWith('es')) { currentLang = 'es'; }
-                else if (userLang.startsWith('ru') || userLang.startsWith('be') || userLang.startsWith('uk') || userLang.startsWith('kk')) { currentLang = 'ru'; }
-                else { currentLang = 'en'; }
-            } else {
-                let navLang = (navigator.language || navigator.userLanguage || 'ru').toLowerCase().slice(0, 2);
-                if (SUPPORTED_LANGS.includes(navLang)) currentLang = navLang;
-                else currentLang = 'ru';
-            }
-            
-            applyLanguageUI();
-            updateMenuLevelText();
-        }
-
-        // Запуск универсального инициализатора
-        Platform.init((sdkLang) => {
-            initGameLanguageAndUI(sdkLang);
-        });
-
-        const SafeStorage = {
-            data: {},
-            get: function(key) { 
-                return this.data[key] !== undefined ? this.data[key] : (localStorage.getItem(key) || null); 
-            },
-            set: function(key, value) { 
-                this.data[key] = String(value);
-                try { localStorage.setItem(key, value); } catch(e) {}
-                if (window.ysPlayer) window.ysPlayer.setData(this.data).catch(() => {});
-            },
-            remove: function(key) { 
-                delete this.data[key];
-                try { localStorage.removeItem(key); } catch(e) {}
-                if (window.ysPlayer) window.ysPlayer.setData(this.data).catch(() => {});
-            },
-            syncFromCloud: function(cloudData) {
-                if(cloudData) this.data = Object.assign(this.data, cloudData);
-                
-                let sLvl = this.get('mahjong_level'); if (sLvl && !isNaN(parseInt(sLvl))) currentLevel = parseInt(sLvl);
-                let sUnLvl = this.get('mahjong_unlocked_level'); 
-                if (sUnLvl && !isNaN(parseInt(sUnLvl))) { unlockedLevel = parseInt(sUnLvl); }
-                else { unlockedLevel = currentLevel; }
-
-                if (currentLevel > unlockedLevel) currentLevel = unlockedLevel;
-
-                let sSco = this.get('mahjong_score'); if (sSco && !isNaN(parseInt(sSco))) totalScore = parseInt(sSco);
-                let sCoi = this.get('mahjong_coins'); if (sCoi && !isNaN(parseInt(sCoi))) totalCoins = parseInt(sCoi);
-                
-                let sLang = this.get('mahjong_lang');
-                if (sLang && SUPPORTED_LANGS.includes(sLang) && sLang !== currentLang) {
-                    currentLang = sLang;
-                    applyLanguageUI();
-                }
-
-                let sBst = this.get('mahjong_free_boosters'); 
-                if (sBst) {
-                    try { freeBoosters = JSON.parse(sBst); } catch(e) { freeBoosters = {"hint":0, "undo":0, "bomb":0, "light":0}; }
-                }
-                
-                let sInv = this.get('mahjong_inventory'); 
-                if (sInv) {
-                    try { userInventory = JSON.parse(sInv); } catch(e) { userInventory = ["bg0", "bg1", "bg2", "snd0", "snd1", "snd2"]; }
-                }
-
-                let sBg = this.get('mahjong_eq_bg'); if (sBg) eqBg = sBg;
-                let sSnd = this.get('mahjong_eq_snd'); if (sSnd) eqSnd = sSnd;
-                
-                updateMenuLevelText(); updateScoreDisplay(); updateBoostersUI(); applyEquippedBg(); AudioSys.restartAmbient();
-            }
-        };
-
-        // --- ДАННЫЕ МАГАЗИНА ---
         const ShopData = {
             bgs: [
                 { id: 'bg0', name: { ru: 'Багровый закат', en: 'Crimson Sunset', tr: 'Kızıl Gün Batımı', es: 'Atardecer Carmesí' }, desc: { ru: 'Классика', en: 'Classic', tr: 'Klasik', es: 'Clásico' }, price: 0, css: 'radial-gradient(circle at center, #6b1222 0%, #2a050b 100%)' },
@@ -628,330 +430,6 @@
                 { id: 'snd6', name: { ru: 'Звенящие сосульки', en: 'Crystal Icicles', tr: 'Buz Çanları', es: 'Carámbanos de Cristal' }, desc: { ru: 'Зимняя сказка', en: 'Winter tale', tr: 'Kış masalı', es: 'Cuento de invierno' }, price: 6000, type: 'icicles' }
             ]
         };
-
-        let userInventory = ["bg0", "bg1", "bg2", "snd0", "snd1", "snd2"];
-        let eqBg = 'bg0';
-        let eqSnd = 'snd0';
-
-        function applyEquippedBg() {
-            let bgObj = ShopData.bgs.find(b => b.id === eqBg) || ShopData.bgs[0];
-            document.documentElement.style.setProperty('--game-bg', bgObj.css);
-            if(bgObj.isAnim) document.body.classList.add('animated-bg');
-            else document.body.classList.remove('animated-bg');
-        }
-
-        const AudioSys = {
-            ctx: null, enabled: true, musicEnabled: true, ambientPlaying: false,
-            noiseSrc: null, noiseFilter: null, noiseGain: null, 
-            lfo1: null, lfo2: null, lfoGain: null,
-            ambientInterval: null,
-            
-            init: function() { 
-                try { 
-                    let AContext = window.AudioContext || window.webkitAudioContext; 
-                    if (AContext && !this.ctx) this.ctx = new AContext(); 
-                    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); 
-                    if (this.musicEnabled && !this.ambientPlaying) this.startAmbient();
-                } catch(e) { this.enabled = false; this.musicEnabled = false; } 
-            },
-            
-            startAmbient: function() {
-                if (!this.musicEnabled || !this.ctx || this.ambientPlaying) return;
-                try {
-                    let sndObj = ShopData.sounds.find(s => s.id === eqSnd) || ShopData.sounds[0];
-                    let bufferSize = this.ctx.sampleRate * 2;
-                    let noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-                    let output = noiseBuffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
-                    
-                    this.noiseSrc = this.ctx.createBufferSource(); this.noiseSrc.buffer = noiseBuffer; this.noiseSrc.loop = true;
-                    this.noiseFilter = this.ctx.createBiquadFilter(); 
-                    this.noiseGain = this.ctx.createGain(); 
-                    
-                    this.lfo1 = this.ctx.createOscillator(); this.lfo1.type = 'sine'; 
-                    this.lfo2 = this.ctx.createOscillator(); this.lfo2.type = 'sine'; 
-                    this.lfoGain = this.ctx.createGain(); 
-                    
-                    if (sndObj.type === 'leaves') {
-                        this.noiseFilter.type = 'bandpass'; this.noiseFilter.frequency.value = 600; this.noiseFilter.Q.value = 0.5;
-                        this.noiseGain.gain.value = 0.05; this.lfo1.frequency.value = 0.15; this.lfoGain.gain.value = 0.04;
-                        this.lfo1.connect(this.lfoGain); this.lfoGain.connect(this.noiseGain.gain);
-                    } else if (sndObj.type === 'rain') {
-                        this.noiseFilter.type = 'lowpass'; this.noiseFilter.frequency.value = 800;
-                        this.noiseGain.gain.value = 0.15; this.lfo1.frequency.value = 0; this.lfoGain.gain.value = 0;
-                    } else if (sndObj.type === 'ocean') {
-                        this.noiseFilter.type = 'lowpass'; this.noiseFilter.frequency.value = 400; 
-                        this.noiseGain.gain.value = 0.02; this.lfo1.frequency.value = 0.08; this.lfoGain.gain.value = 0.08;
-                        this.lfo1.connect(this.lfoGain); this.lfoGain.connect(this.noiseGain.gain);
-                        let lfoFreq = this.ctx.createOscillator(); lfoFreq.frequency.value = 0.08;
-                        let lfoFreqGain = this.ctx.createGain(); lfoFreqGain.gain.value = 300;
-                        lfoFreq.connect(lfoFreqGain); lfoFreqGain.connect(this.noiseFilter.frequency);
-                        lfoFreq.start(); this.lfo2 = lfoFreq;
-                    } else if (sndObj.type === 'cave') {
-                        this.noiseFilter.type = 'bandpass'; this.noiseFilter.frequency.value = 150; this.noiseFilter.Q.value = 5;
-                        this.noiseGain.gain.value = 0.4; this.lfo1.frequency.value = 0.05; this.lfoGain.gain.value = 0.2;
-                        this.lfo1.connect(this.lfoGain); this.lfoGain.connect(this.noiseGain.gain);
-                    } else if (sndObj.type === 'space') {
-                        this.noiseFilter.type = 'highpass'; this.noiseFilter.frequency.value = 2000;
-                        this.noiseGain.gain.value = 0.01; this.lfo1.frequency.value = 0.1; this.lfoGain.gain.value = 0.01;
-                        this.lfo1.connect(this.lfoGain); this.lfoGain.connect(this.noiseGain.gain);
-                    } else if (sndObj.type === 'birds') {
-                        this.noiseFilter.type = 'bandpass'; this.noiseFilter.frequency.value = 600; this.noiseFilter.Q.value = 0.5;
-                        this.noiseGain.gain.value = 0.02; 
-                        let playBird = () => {
-                            if(!this.ctx || this.ctx.state !== 'running') return;
-                            let osc = this.ctx.createOscillator(); let gain = this.ctx.createGain();
-                            osc.type = 'sine'; let baseFreq = 3000 + Math.random() * 1500;
-                            osc.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
-                            osc.frequency.linearRampToValueAtTime(baseFreq + 500, this.ctx.currentTime + 0.05);
-                            osc.frequency.linearRampToValueAtTime(baseFreq - 200, this.ctx.currentTime + 0.1);
-                            osc.frequency.linearRampToValueAtTime(baseFreq + 400, this.ctx.currentTime + 0.15);
-                            gain.gain.setValueAtTime(0, this.ctx.currentTime);
-                            gain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.05);
-                            gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2);
-                            osc.connect(gain); gain.connect(this.ctx.destination);
-                            osc.start(); osc.stop(this.ctx.currentTime + 0.2);
-                        };
-                        this.ambientInterval = setInterval(() => {
-                            playBird(); if(Math.random() > 0.5) setTimeout(playBird, 200 + Math.random()*200);
-                        }, 3500);
-                    } else if (sndObj.type === 'icicles') {
-                        this.noiseFilter.type = 'bandpass'; this.noiseFilter.frequency.value = 1000; this.noiseFilter.Q.value = 1;
-                        this.noiseGain.gain.value = 0.02;
-                        this.ambientInterval = setInterval(() => {
-                            if(!this.ctx || this.ctx.state !== 'running') return;
-                            let osc = this.ctx.createOscillator(); let gain = this.ctx.createGain();
-                            osc.type = 'sine'; let f = 4000 + Math.random() * 2000;
-                            osc.frequency.setValueAtTime(f, this.ctx.currentTime);
-                            gain.gain.setValueAtTime(0, this.ctx.currentTime);
-                            gain.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + 0.01); 
-                            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.5); 
-                            osc.connect(gain); gain.connect(this.ctx.destination);
-                            osc.start(); osc.stop(this.ctx.currentTime + 1.5);
-                        }, 2000);
-                    }
-
-                    this.noiseSrc.connect(this.noiseFilter); this.noiseFilter.connect(this.noiseGain); this.noiseGain.connect(this.ctx.destination);
-                    this.noiseSrc.start(); if(this.lfo1.frequency.value > 0) this.lfo1.start(); 
-                    this.ambientPlaying = true;
-                } catch(e) {}
-            },
-            stopAmbient: function() {
-                if (this.noiseSrc) { try { this.noiseSrc.stop(); } catch(e){} this.noiseSrc = null; }
-                if (this.lfo1) { try { this.lfo1.stop(); } catch(e){} this.lfo1 = null; }
-                if (this.lfo2) { try { this.lfo2.stop(); } catch(e){} this.lfo2 = null; }
-                if (this.ambientInterval) { clearInterval(this.ambientInterval); this.ambientInterval = null; }
-                this.ambientPlaying = false;
-            },
-            restartAmbient: function() { this.stopAmbient(); this.startAmbient(); },
-
-            playOsc: function(type, freq, dropFreq, duration, vol) {
-                try {
-                    if (!this.enabled || !this.ctx || this.ctx.state !== 'running') return;
-                    const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
-                    osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    if (dropFreq) osc.frequency.exponentialRampToValueAtTime(dropFreq, this.ctx.currentTime + duration);
-                    gain.gain.setValueAtTime(vol, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration);
-                    osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + duration);
-                } catch(e) {}
-            },
-            playClick: function(isSelected) { let startFreq = isSelected ? 300 : 200; let endFreq = isSelected ? 80 : 60; this.playOsc('sine', startFreq, endFreq, 0.05, 0.4); },
-            playUnlock: function() { try { this.playOsc('sine', 800, 1200, 0.15, 0.2); setTimeout(() => this.playOsc('triangle', 300, 100, 0.1, 0.3), 50); } catch(e) {} },
-            playLockClose: function() { try { this.playOsc('triangle', 400, 200, 0.15, 0.3); setTimeout(() => this.playOsc('square', 200, 100, 0.1, 0.2), 80); } catch(e) {} },
-            playMatch: function() { try { if (!this.enabled || !this.ctx || this.ctx.state !== 'running') return; let playTock = (delay, freq) => { setTimeout(() => { if (!this.ctx || this.ctx.state !== 'running') return; let osc = this.ctx.createOscillator(); let gain = this.ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, this.ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(freq * 0.2, this.ctx.currentTime + 0.04); gain.gain.setValueAtTime(0.7, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.05); }, delay); }; playTock(0, 250); playTock(35, 300); } catch(e) {} },
-            playWin: function() { try { if (!this.enabled || !this.ctx || this.ctx.state !== 'running') return; let notes = [ {f: 523.25, d: 0.15, delay: 0}, {f: 523.25, d: 0.15, delay: 200}, {f: 523.25, d: 0.30, delay: 400}, {f: 392.00, d: 0.20, delay: 750}, {f: 523.25, d: 0.80, delay: 1000} ]; notes.forEach(n => { setTimeout(() => { this.playOsc('square', n.f, null, n.d, 0.15); this.playOsc('sine', n.f, null, n.d, 0.3); }, n.delay); }); } catch(e) {} },
-            playShuffle: function() { for(let i = 0; i < 15; i++) { setTimeout(() => { let f = 150 + Math.random() * 200; this.playOsc('sine', f, f/2, 0.04, 0.3); }, Math.random() * 400); } },
-            playWheelTick: function() { this.playOsc('square', 800, 600, 0.05, 0.05); },
-            playBooster: function() { this.playOsc('triangle', 800, 200, 0.2, 0.3); },
-            playError: function() { this.playOsc('sawtooth', 150, 100, 0.2, 0.3); },
-            
-            toggleSound: function() { 
-                this.enabled = !this.enabled; SafeStorage.set('mahjong_sound', this.enabled); 
-                const btnSet = document.getElementById('btn-settings-sound'); if (btnSet) btnSet.innerText = this.enabled ? t('soundOn') : t('soundOff');
-            },
-            toggleMusic: function() { 
-                this.musicEnabled = !this.musicEnabled; SafeStorage.set('mahjong_music', this.musicEnabled); 
-                const btnSet = document.getElementById('btn-settings-music'); if (btnSet) btnSet.innerText = this.musicEnabled ? t('musicOn') : t('musicOff');
-                if (this.musicEnabled) { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); this.startAmbient(); } else { this.stopAmbient(); } 
-            }
-        };
-
-        function setLanguage(langKey, save = true) {
-            if (!SUPPORTED_LANGS.includes(langKey)) return;
-            currentLang = langKey;
-            if (save) SafeStorage.set('mahjong_lang', currentLang);
-            applyLanguageUI();
-            updateMenuLevelText();
-            updateBoostersUI();
-            renderShop();
-            renderWheel();
-        }
-
-        function cycleLanguage() {
-            let nextIndex = (SUPPORTED_LANGS.indexOf(currentLang) + 1) % SUPPORTED_LANGS.length;
-            setLanguage(SUPPORTED_LANGS[nextIndex], true);
-        }
-
-        function applyLanguageUI() {
-            document.getElementById('btn-play').innerText = t('play');
-            document.getElementById('btn-open-shop').innerText = t('shopBtn');
-            document.getElementById('btn-leaderboard').innerText = t('leaderboard');
-            document.getElementById('btn-settings').innerText = t('settings');
-            document.getElementById('btn-rules').innerText = t('howToPlay');
-            document.getElementById('btn-reset').innerText = t('resetProgress');
-
-            document.getElementById('txt-settings-title').innerText = t('settings');
-            document.getElementById('btn-settings-sound').innerText = AudioSys.enabled ? t('soundOn') : t('soundOff');
-            document.getElementById('btn-settings-music').innerText = AudioSys.musicEnabled ? t('musicOn') : t('musicOff');
-            document.getElementById('btn-settings-lang').innerText = `🌐 ${t('langName')}`;
-            document.getElementById('btn-close-settings').innerText = t('close');
-
-            document.getElementById('txt-lb-title').innerText = t('leaderboard');
-            document.getElementById('btn-close-leaderboard').innerText = t('close');
-
-            document.getElementById('txt-shop-title').innerText = t('shopTitle');
-            document.getElementById('txt-shop-bg-title').innerText = t('shopBgTitle');
-            document.getElementById('txt-shop-snd-title').innerText = t('shopSndTitle');
-            document.getElementById('btn-open-wheel').innerText = t('wheelDaily');
-            document.getElementById('btn-close-shop').innerText = t('close');
-
-            document.getElementById('txt-wheel-title').innerText = t('wheelTitle');
-            document.getElementById('btn-close-wheel').innerText = t('backToShop');
-
-            document.getElementById('txt-rules-title').innerText = t('rulesTitle');
-            document.getElementById('txt-rules-body').innerHTML = `<p>${t('rules1')}</p><p>${t('rules2')}</p><p>${t('rules3')}</p>`;
-            document.getElementById('btn-close-rules').innerText = t('understood');
-
-            document.getElementById('txt-nomoves-title').innerText = t('noMovesTitle');
-            document.getElementById('txt-nomoves-body').innerText = t('noMovesDesc');
-            document.getElementById('btn-modal-shuffle').innerText = `🎥 ${t('mix')}`;
-            document.getElementById('btn-close-no-moves').innerText = t('useBoosterBtn');
-
-            document.getElementById('btn-menu').innerText = t('menuHome');
-            document.getElementById('btn-game-settings').innerText = t('settings');
-            document.getElementById('txt-booster-mix').innerText = t('mix');
-
-            document.getElementById('txt-ad-title').innerText = t('adTitle');
-            document.getElementById('txt-ad-body').innerText = t('adDesc');
-            document.getElementById('level-complete-text').innerText = t('levelComplete');
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            applyEquippedBg();
-            let savedMusic = SafeStorage.get('mahjong_music'); if (savedMusic !== null) AudioSys.musicEnabled = (savedMusic === 'true');
-            let savedSound = SafeStorage.get('mahjong_sound'); if (savedSound !== null) AudioSys.enabled = (savedSound === 'true');
-        });
-
-        document.addEventListener("visibilitychange", () => { 
-            if (document.hidden) { if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend(); } 
-            else { if (AudioSys.ctx && AudioSys.ctx.state === 'suspended' && (AudioSys.enabled || AudioSys.musicEnabled)) AudioSys.ctx.resume(); } 
-        });
-        window.addEventListener("blur", () => { if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend(); });
-        window.addEventListener("focus", () => { if (AudioSys.ctx && AudioSys.ctx.state === 'suspended' && (AudioSys.enabled || AudioSys.musicEnabled)) AudioSys.ctx.resume(); });
-
-        function createParticles() {
-            const container = document.getElementById('particles-container'); container.innerHTML = '';
-            for(let i=0; i<30; i++) { let p = document.createElement('div'); p.classList.add('particle'); let size = Math.random() * 4 + 2; p.style.width = size + 'px'; p.style.height = size + 'px'; p.style.left = Math.random() * 100 + 'vw'; p.style.animationDuration = (Math.random() * 10 + 10) + 's'; p.style.animationDelay = (Math.random() * 10) + 's'; container.appendChild(p); }
-        }
-        createParticles();
-
-        let savedLvl = SafeStorage.get('mahjong_level'); if (savedLvl && !isNaN(parseInt(savedLvl))) currentLevel = parseInt(savedLvl); else currentLevel = 1;
-        let savedUnLvl = SafeStorage.get('mahjong_unlocked_level'); if (savedUnLvl && !isNaN(parseInt(savedUnLvl))) unlockedLevel = parseInt(savedUnLvl); else unlockedLevel = currentLevel;
-        
-        let savedScore = SafeStorage.get('mahjong_score'); if (savedScore && !isNaN(parseInt(savedScore))) totalScore = parseInt(savedScore); else totalScore = 0;
-        let savedCoins = SafeStorage.get('mahjong_coins'); if (savedCoins && !isNaN(parseInt(savedCoins))) totalCoins = parseInt(savedCoins); else totalCoins = 0;
-        
-        let freeBoosters = {hint:0, undo:0, bomb:0, light:0};
-        try { let storedBoosters = SafeStorage.get('mahjong_free_boosters'); if(storedBoosters) freeBoosters = JSON.parse(storedBoosters); } catch(e) {}
-
-        const botNames = ["Master777", "MahjongPro", "Sensei", "Dragon", "Tiger", "LuckyStar", "AlexPro", "Panda", "Ninja", "Shadow", "Samurai", "Fox", "Zen", "GamerX", "Champion", "Alpha"];
-        let mockLeaderboard = [];
-        try { 
-            let ml = SafeStorage.get('mahjong_leaderboard');
-            if (ml) mockLeaderboard = JSON.parse(ml);
-            else throw new Error("no lb");
-        } catch(e) {
-            for(let i=0; i<49; i++) { mockLeaderboard.push({ name: botNames[Math.floor(Math.random() * botNames.length)] + Math.floor(Math.random() * 999), score: Math.floor(Math.random() * 25000) + 500 }); }
-            SafeStorage.set('mahjong_leaderboard', JSON.stringify(mockLeaderboard));
-        }
-
-        function getPlayerRank() { 
-            let meLabel = currentLang === 'ru' ? 'ВЫ' : (currentLang === 'tr' ? 'SEN' : (currentLang === 'es' ? 'TÚ' : 'YOU'));
-            let allPlayers = [...mockLeaderboard, { name: meLabel, score: totalScore, isMe: true }]; 
-            allPlayers.sort((a, b) => b.score - a.score); 
-            let rank = allPlayers.findIndex(p => p.isMe) + 1; 
-            return { rank, list: allPlayers }; 
-        }
-
-        function openLeaderboard() {
-            AudioSys.init(); AudioSys.playClick(true);
-            let data = getPlayerRank(); let container = document.getElementById('lb-container'); container.innerHTML = '';
-            data.list.slice(0, 50).forEach((p, idx) => { let row = document.createElement('div'); row.className = 'lb-row' + (p.isMe ? ' me' : ''); row.innerHTML = `<span class="lb-rank">#${idx + 1}</span><span class="lb-name">${p.name}</span><span class="lb-score">${p.score}</span>`; container.appendChild(row); if (p.isMe) { setTimeout(() => { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); } });
-            document.getElementById('leaderboard-modal').style.display = 'flex';
-        }
-        
-        document.getElementById('btn-leaderboard').addEventListener('click', openLeaderboard);
-        document.getElementById('btn-close-leaderboard').addEventListener('click', () => { document.getElementById('leaderboard-modal').style.display = 'none'; });
-
-        document.getElementById('btn-settings').addEventListener('click', () => { AudioSys.init(); document.getElementById('settings-modal').style.display = 'flex'; });
-        document.getElementById('btn-game-settings').addEventListener('click', () => { AudioSys.init(); document.getElementById('settings-modal').style.display = 'flex'; });
-        document.getElementById('btn-close-settings').addEventListener('click', () => { document.getElementById('settings-modal').style.display = 'none'; });
-        document.getElementById('btn-settings-sound').addEventListener('click', () => { AudioSys.init(); AudioSys.toggleSound(); });
-        document.getElementById('btn-settings-music').addEventListener('click', () => { AudioSys.init(); AudioSys.toggleMusic(); });
-        document.getElementById('btn-settings-lang').addEventListener('click', () => { AudioSys.init(); cycleLanguage(); });
-
-        function renderShop() {
-            document.getElementById('shop-coins-header').innerText = `${t('yourCoins')}${totalCoins}`;
-            
-            let bgContainer = document.getElementById('shop-bgs-container'); bgContainer.innerHTML = '';
-            ShopData.bgs.forEach(item => {
-                let isOwned = userInventory.includes(item.id);
-                let isEquipped = eqBg === item.id;
-                let btnHtml = '';
-                if (isEquipped) btnHtml = `<button class="btn-shop btn-equipped">${t('equipped')}</button>`;
-                else if (isOwned) btnHtml = `<button class="btn-shop btn-equip" onclick="equipItem('${item.id}', 'bg')">${t('equip')}</button>`;
-                else btnHtml = `<button class="btn-shop btn-buy" onclick="buyItem('${item.id}', 'bg', ${item.price})">💰 ${item.price}</button>`;
-
-                let name = item.name[currentLang] || item.name['en'] || item.name['ru'];
-                let desc = item.desc[currentLang] || item.desc['en'] || item.desc['ru'];
-
-                bgContainer.innerHTML += `<div class="shop-item ${isEquipped ? 'equipped' : ''}"> <div class="shop-item-info"> <span class="shop-item-name">${name}</span> <span class="shop-item-desc">${desc}</span> </div> ${btnHtml} </div>`;
-            });
-
-            let sndContainer = document.getElementById('shop-sounds-container'); sndContainer.innerHTML = '';
-            ShopData.sounds.forEach(item => {
-                let isOwned = userInventory.includes(item.id);
-                let isEquipped = eqSnd === item.id;
-                let btnHtml = '';
-                if (isEquipped) btnHtml = `<button class="btn-shop btn-equipped">${t('equipped')}</button>`;
-                else if (isOwned) btnHtml = `<button class="btn-shop btn-equip" onclick="equipItem('${item.id}', 'snd')">${t('equip')}</button>`;
-                else btnHtml = `<button class="btn-shop btn-buy" onclick="buyItem('${item.id}', 'snd', ${item.price})">💰 ${item.price}</button>`;
-
-                let name = item.name[currentLang] || item.name['en'] || item.name['ru'];
-                let desc = item.desc[currentLang] || item.desc['en'] || item.desc['ru'];
-
-                sndContainer.innerHTML += `<div class="shop-item ${isEquipped ? 'equipped' : ''}"> <div class="shop-item-info"> <span class="shop-item-name">${name}</span> <span class="shop-item-desc">${desc}</span> </div> ${btnHtml} </div>`;
-            });
-        }
-
-        window.buyItem = function(id, type, price) {
-            AudioSys.init();
-            if (totalCoins >= price) {
-                totalCoins -= price; SafeStorage.set('mahjong_coins', totalCoins);
-                userInventory.push(id); SafeStorage.set('mahjong_inventory', JSON.stringify(userInventory));
-                updateScoreDisplay(); AudioSys.playWin(); renderShop();
-            } else { AudioSys.playError(); alert(t('notEnoughCoins')); }
-        };
-
-        window.equipItem = function(id, type) {
-            AudioSys.init(); AudioSys.playClick(true);
-            if (type === 'bg') { eqBg = id; SafeStorage.set('mahjong_eq_bg', eqBg); applyEquippedBg(); }
-            if (type === 'snd') { eqSnd = id; SafeStorage.set('mahjong_eq_snd', eqSnd); AudioSys.restartAmbient(); }
-            renderShop();
-        };
-
-        document.getElementById('btn-open-shop').addEventListener('click', () => { AudioSys.init(); renderShop(); document.getElementById('shop-modal').style.display = 'flex'; });
-        document.getElementById('btn-close-shop').addEventListener('click', () => { document.getElementById('shop-modal').style.display = 'none'; });
 
         const themeSets = [
             ['🍔','🍕','🌭','🍟','🥐','🥞','🥨','🧀','🌮','🌯','🍜','🍣','🍱','🥟','🍤','🥩','🥓','🍗','🥚','🍞'],
@@ -980,11 +458,260 @@
             es: ["Arboleda Brillante", "Tierra de Abedules", "Laguna Serena", "Cúpulas Doradas", "Bosque Sagrado", "Campos Vastedad", "Leyenda Antigua", "Tierra Próspera", "Amanecer en Río", "Refugio Cálido"]
         };
 
+        const wheelPrizes = [ 
+            { type: 'coins', text: "500 💰", val: 500, color: "#3498db" }, 
+            { type: 'booster', id: 'hint', text: "🔍", name: { ru: "Поиск", en: "Hint", tr: "İpucu", es: "Pista" }, color: "#9b59b6" }, 
+            { type: 'coins', text: "1500 💰", val: 1500, color: "#e67e22" }, 
+            { type: 'booster', id: 'undo', text: "↩️", name: { ru: "Возврат", en: "Undo", tr: "Geri Al", es: "Deshacer" }, color: "#e74c3c" }, 
+            { type: 'coins', text: "3000 💰", val: 3000, color: "#f1c40f" }, 
+            { type: 'booster', id: 'bomb', text: "💣", name: { ru: "Бомбочка", en: "Bomb", tr: "Bomba", es: "Bomba" }, color: "#2ecc71" }, 
+            { type: 'booster', id: 'light', text: "⚡", name: { ru: "Молния", en: "Lightning", tr: "Yıldırım", es: "Rayo" }, color: "#1abc9c" } 
+        ];
+
+        let freeBoosters = {hint:0, undo:0, bomb:0, light:0};
+        let userInventory = ["bg0", "bg1", "bg2", "snd0", "snd1", "snd2"];
+        let eqBg = 'bg0';
+        let eqSnd = 'snd0';
+        let mockLeaderboard = [];
+        const botNames = ["Master777", "MahjongPro", "Sensei", "Dragon", "Tiger", "LuckyStar", "AlexPro", "Panda", "Ninja", "Shadow", "Samurai", "Fox", "Zen", "GamerX", "Champion", "Alpha"];
+
+        // --- 2. ОБЪЕКТЫ ДВИЖКА (Storage, Audio, Platform) ---
+        const SafeStorage = {
+            data: {},
+            get: function(key) { return this.data[key] !== undefined ? this.data[key] : (localStorage.getItem(key) || null); },
+            set: function(key, value) { 
+                this.data[key] = String(value);
+                try { localStorage.setItem(key, value); } catch(e) {}
+                if (window.ysPlayer) window.ysPlayer.setData(this.data).catch(() => {});
+            },
+            remove: function(key) { 
+                delete this.data[key];
+                try { localStorage.removeItem(key); } catch(e) {}
+                if (window.ysPlayer) window.ysPlayer.setData(this.data).catch(() => {});
+            },
+            syncFromCloud: function(cloudData) {
+                if(cloudData) this.data = Object.assign(this.data, cloudData);
+                let sLvl = this.get('mahjong_level'); if (sLvl && !isNaN(parseInt(sLvl))) currentLevel = parseInt(sLvl);
+                let sUnLvl = this.get('mahjong_unlocked_level'); 
+                if (sUnLvl && !isNaN(parseInt(sUnLvl))) { unlockedLevel = parseInt(sUnLvl); } else { unlockedLevel = currentLevel; }
+                if (currentLevel > unlockedLevel) currentLevel = unlockedLevel;
+                let sSco = this.get('mahjong_score'); if (sSco && !isNaN(parseInt(sSco))) totalScore = parseInt(sSco);
+                let sCoi = this.get('mahjong_coins'); if (sCoi && !isNaN(parseInt(sCoi))) totalCoins = parseInt(sCoi);
+                
+                let sLang = this.get('mahjong_lang');
+                if (sLang && SUPPORTED_LANGS.includes(sLang) && sLang !== currentLang) { currentLang = sLang; applyLanguageUI(); }
+
+                let sBst = this.get('mahjong_free_boosters'); 
+                if (sBst) { try { freeBoosters = JSON.parse(sBst); } catch(e) { freeBoosters = {"hint":0, "undo":0, "bomb":0, "light":0}; } }
+                let sInv = this.get('mahjong_inventory'); 
+                if (sInv) { try { userInventory = JSON.parse(sInv); } catch(e) { userInventory = ["bg0", "bg1", "bg2", "snd0", "snd1", "snd2"]; } }
+
+                let sBg = this.get('mahjong_eq_bg'); if (sBg) eqBg = sBg;
+                let sSnd = this.get('mahjong_eq_snd'); if (sSnd) eqSnd = sSnd;
+                
+                updateMenuLevelText(); updateScoreDisplay(); updateBoostersUI(); applyEquippedBg(); AudioSys.restartAmbient();
+            }
+        };
+
+        const AudioSys = {
+            ctx: null, enabled: true, musicEnabled: true, ambientPlaying: false,
+            noiseSrc: null, noiseFilter: null, noiseGain: null, lfo1: null, lfo2: null, lfoGain: null, ambientInterval: null,
+            init: function() { 
+                try { let AContext = window.AudioContext || window.webkitAudioContext; 
+                    if (AContext && !this.ctx) this.ctx = new AContext(); 
+                    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); 
+                    if (this.musicEnabled && !this.ambientPlaying) this.startAmbient();
+                } catch(e) { this.enabled = false; this.musicEnabled = false; } 
+            },
+            startAmbient: function() {
+                if (!this.musicEnabled || !this.ctx || this.ambientPlaying) return;
+                try {
+                    let sndObj = ShopData.sounds.find(s => s.id === eqSnd) || ShopData.sounds[0];
+                    let bufferSize = this.ctx.sampleRate * 2; let noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    let output = noiseBuffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
+                    this.noiseSrc = this.ctx.createBufferSource(); this.noiseSrc.buffer = noiseBuffer; this.noiseSrc.loop = true;
+                    this.noiseFilter = this.ctx.createBiquadFilter(); this.noiseGain = this.ctx.createGain(); 
+                    this.lfo1 = this.ctx.createOscillator(); this.lfo1.type = 'sine'; 
+                    this.lfo2 = this.ctx.createOscillator(); this.lfo2.type = 'sine'; this.lfoGain = this.ctx.createGain(); 
+                    if (sndObj.type === 'leaves') { this.noiseFilter.type = 'bandpass'; this.noiseFilter.frequency.value = 600; this.noiseFilter.Q.value = 0.5; this.noiseGain.gain.value = 0.05; this.lfo1.frequency.value = 0.15; this.lfoGain.gain.value = 0.04; this.lfo1.connect(this.lfoGain); this.lfoGain.connect(this.noiseGain.gain); } 
+                    else if (sndObj.type === 'rain') { this.noiseFilter.type = 'lowpass'; this.noiseFilter.frequency.value = 800; this.noiseGain.gain.value = 0.15; this.lfo1.frequency.value = 0; this.lfoGain.gain.value = 0; } 
+                    else if (sndObj.type === 'ocean') { this.noiseFilter.type = 'lowpass'; this.noiseFilter.frequency.value = 400; this.noiseGain.gain.value = 0.02; this.lfo1.frequency.value = 0.08; this.lfoGain.gain.value = 0.08; this.lfo1.connect(this.lfoGain); this.lfoGain.connect(this.noiseGain.gain); let lfoFreq = this.ctx.createOscillator(); lfoFreq.frequency.value = 0.08; let lfoFreqGain = this.ctx.createGain(); lfoFreqGain.gain.value = 300; lfoFreq.connect(lfoFreqGain); lfoFreqGain.connect(this.noiseFilter.frequency); lfoFreq.start(); this.lfo2 = lfoFreq; } 
+                    else if (sndObj.type === 'cave') { this.noiseFilter.type = 'bandpass'; this.noiseFilter.frequency.value = 150; this.noiseFilter.Q.value = 5; this.noiseGain.gain.value = 0.4; this.lfo1.frequency.value = 0.05; this.lfoGain.gain.value = 0.2; this.lfo1.connect(this.lfoGain); this.lfoGain.connect(this.noiseGain.gain); } 
+                    else if (sndObj.type === 'space') { this.noiseFilter.type = 'highpass'; this.noiseFilter.frequency.value = 2000; this.noiseGain.gain.value = 0.01; this.lfo1.frequency.value = 0.1; this.lfoGain.gain.value = 0.01; this.lfo1.connect(this.lfoGain); this.lfoGain.connect(this.noiseGain.gain); } 
+                    else if (sndObj.type === 'birds') { this.noiseFilter.type = 'bandpass'; this.noiseFilter.frequency.value = 600; this.noiseFilter.Q.value = 0.5; this.noiseGain.gain.value = 0.02; let playBird = () => { if(!this.ctx || this.ctx.state !== 'running') return; let osc = this.ctx.createOscillator(); let gain = this.ctx.createGain(); osc.type = 'sine'; let baseFreq = 3000 + Math.random() * 1500; osc.frequency.setValueAtTime(baseFreq, this.ctx.currentTime); osc.frequency.linearRampToValueAtTime(baseFreq + 500, this.ctx.currentTime + 0.05); osc.frequency.linearRampToValueAtTime(baseFreq - 200, this.ctx.currentTime + 0.1); osc.frequency.linearRampToValueAtTime(baseFreq + 400, this.ctx.currentTime + 0.15); gain.gain.setValueAtTime(0, this.ctx.currentTime); gain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.05); gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.2); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.2); }; this.ambientInterval = setInterval(() => { playBird(); if(Math.random() > 0.5) setTimeout(playBird, 200 + Math.random()*200); }, 3500); } 
+                    else if (sndObj.type === 'icicles') { this.noiseFilter.type = 'bandpass'; this.noiseFilter.frequency.value = 1000; this.noiseFilter.Q.value = 1; this.noiseGain.gain.value = 0.02; this.ambientInterval = setInterval(() => { if(!this.ctx || this.ctx.state !== 'running') return; let osc = this.ctx.createOscillator(); let gain = this.ctx.createGain(); osc.type = 'sine'; let f = 4000 + Math.random() * 2000; osc.frequency.setValueAtTime(f, this.ctx.currentTime); gain.gain.setValueAtTime(0, this.ctx.currentTime); gain.gain.linearRampToValueAtTime(0.15, this.ctx.currentTime + 0.01); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 1.5); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 1.5); }, 2000); }
+                    this.noiseSrc.connect(this.noiseFilter); this.noiseFilter.connect(this.noiseGain); this.noiseGain.connect(this.ctx.destination);
+                    this.noiseSrc.start(); if(this.lfo1.frequency.value > 0) this.lfo1.start(); this.ambientPlaying = true;
+                } catch(e) {}
+            },
+            stopAmbient: function() {
+                if (this.noiseSrc) { try { this.noiseSrc.stop(); } catch(e){} this.noiseSrc = null; }
+                if (this.lfo1) { try { this.lfo1.stop(); } catch(e){} this.lfo1 = null; }
+                if (this.lfo2) { try { this.lfo2.stop(); } catch(e){} this.lfo2 = null; }
+                if (this.ambientInterval) { clearInterval(this.ambientInterval); this.ambientInterval = null; }
+                this.ambientPlaying = false;
+            },
+            restartAmbient: function() { this.stopAmbient(); this.startAmbient(); },
+            playOsc: function(type, freq, dropFreq, duration, vol) {
+                try { if (!this.enabled || !this.ctx || this.ctx.state !== 'running') return; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); osc.type = type; osc.frequency.setValueAtTime(freq, this.ctx.currentTime); if (dropFreq) osc.frequency.exponentialRampToValueAtTime(dropFreq, this.ctx.currentTime + duration); gain.gain.setValueAtTime(vol, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + duration); } catch(e) {}
+            },
+            playClick: function(isSelected) { let startFreq = isSelected ? 300 : 200; let endFreq = isSelected ? 80 : 60; this.playOsc('sine', startFreq, endFreq, 0.05, 0.4); },
+            playUnlock: function() { try { this.playOsc('sine', 800, 1200, 0.15, 0.2); setTimeout(() => this.playOsc('triangle', 300, 100, 0.1, 0.3), 50); } catch(e) {} },
+            playLockClose: function() { try { this.playOsc('triangle', 400, 200, 0.15, 0.3); setTimeout(() => this.playOsc('square', 200, 100, 0.1, 0.2), 80); } catch(e) {} },
+            playMatch: function() { try { if (!this.enabled || !this.ctx || this.ctx.state !== 'running') return; let playTock = (delay, freq) => { setTimeout(() => { if (!this.ctx || this.ctx.state !== 'running') return; let osc = this.ctx.createOscillator(); let gain = this.ctx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(freq, this.ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(freq * 0.2, this.ctx.currentTime + 0.04); gain.gain.setValueAtTime(0.7, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04); osc.connect(gain); gain.connect(this.ctx.destination); osc.start(); osc.stop(this.ctx.currentTime + 0.05); }, delay); }; playTock(0, 250); playTock(35, 300); } catch(e) {} },
+            playWin: function() { try { if (!this.enabled || !this.ctx || this.ctx.state !== 'running') return; let notes = [ {f: 523.25, d: 0.15, delay: 0}, {f: 523.25, d: 0.15, delay: 200}, {f: 523.25, d: 0.30, delay: 400}, {f: 392.00, d: 0.20, delay: 750}, {f: 523.25, d: 0.80, delay: 1000} ]; notes.forEach(n => { setTimeout(() => { this.playOsc('square', n.f, null, n.d, 0.15); this.playOsc('sine', n.f, null, n.d, 0.3); }, n.delay); }); } catch(e) {} },
+            playShuffle: function() { for(let i = 0; i < 15; i++) { setTimeout(() => { let f = 150 + Math.random() * 200; this.playOsc('sine', f, f/2, 0.04, 0.3); }, Math.random() * 400); } },
+            playWheelTick: function() { this.playOsc('square', 800, 600, 0.05, 0.05); },
+            playBooster: function() { this.playOsc('triangle', 800, 200, 0.2, 0.3); },
+            playError: function() { this.playOsc('sawtooth', 150, 100, 0.2, 0.3); },
+            toggleSound: function() { this.enabled = !this.enabled; SafeStorage.set('mahjong_sound', this.enabled); const btnSet = document.getElementById('btn-settings-sound'); if (btnSet) btnSet.innerText = this.enabled ? t('soundOn') : t('soundOff'); },
+            toggleMusic: function() { this.musicEnabled = !this.musicEnabled; SafeStorage.set('mahjong_music', this.musicEnabled); const btnSet = document.getElementById('btn-settings-music'); if (btnSet) btnSet.innerText = this.musicEnabled ? t('musicOn') : t('musicOff'); if (this.musicEnabled) { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); this.startAmbient(); } else { this.stopAmbient(); } }
+        };
+
+        const Platform = {
+            name: 'local', sdk: null,
+            init: async function(langCallback) {
+                if (typeof vkBridge !== 'undefined' && window.location.search.includes('vk_')) {
+                    try { await vkBridge.send("VKWebAppInit"); this.name = 'vk'; this.sdk = vkBridge; console.log("VK SDK activated"); let urlParams = new URLSearchParams(window.location.search); let vkLang = urlParams.get('language') || urlParams.get('lang'); langCallback(vkLang); return; } catch(e) {}
+                }
+                if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
+                    this.name = 'crazygames'; this.sdk = window.CrazyGames.SDK; console.log("CrazyGames SDK activated"); langCallback(null); return;
+                }
+                if (typeof YaGames !== 'undefined') {
+                    try {
+                        this.sdk = await YaGames.init(); this.name = 'yandex'; console.log("Yandex SDK activated");
+                        let sdkLanguage = (this.sdk.environment && this.sdk.environment.i18n) ? this.sdk.environment.i18n.lang : null;
+                        langCallback(sdkLanguage);
+                        if (this.sdk.features && this.sdk.features.LoadingAPI) { this.sdk.features.LoadingAPI.ready(); }
+                        try { window.ysPlayer = await this.sdk.getPlayer({ scopes: false }); let data = await window.ysPlayer.getData(); SafeStorage.syncFromCloud(data); } catch(e) {}
+                        return;
+                    } catch(e) {}
+                }
+                console.log("Local environment"); langCallback(null);
+            },
+            gameplayStart: function() { if (this.name === 'crazygames') { this.sdk.game.gameplayStart(); } },
+            gameplayStop: function() { if (this.name === 'crazygames') { this.sdk.game.gameplayStop(); } },
+            showRewarded: function(callbacks) {
+                if (this.name === 'yandex' && this.sdk.adv) {
+                    this.sdk.adv.showRewardedVideo({ callbacks: { onOpen: callbacks.onStart, onRewarded: callbacks.onReward, onClose: callbacks.onClose, onError: callbacks.onError || callbacks.onClose } });
+                } else if (this.name === 'crazygames') {
+                    this.sdk.ad.requestAd('rewarded', { adStarted: callbacks.onStart, adFinished: () => { callbacks.onReward(); callbacks.onClose(); }, adError: (err) => { if(callbacks.onError) callbacks.onError(); callbacks.onClose(); } });
+                } else if (this.name === 'vk') {
+                    if(callbacks.onStart) callbacks.onStart();
+                    this.sdk.send("VKWebAppShowNativeAds", {ad_format:"reward"}).then(data => { if (data.result) { if(callbacks.onReward) callbacks.onReward(); } else { if(callbacks.onError) callbacks.onError(); } if(callbacks.onClose) callbacks.onClose(); }).catch(err => { if(callbacks.onError) callbacks.onError(); if(callbacks.onClose) callbacks.onClose(); });
+                } else {
+                    const adScreen = document.getElementById('ad-screen'); if(adScreen) adScreen.style.display = 'flex';
+                    if(callbacks.onStart) callbacks.onStart();
+                    setTimeout(() => { if(adScreen) adScreen.style.display = 'none'; if(callbacks.onReward) callbacks.onReward(); if(callbacks.onClose) callbacks.onClose(); }, 1000);
+                }
+            }
+        };
+
+        // --- 3. ИНИЦИАЛИЗАЦИЯ И ФУНКЦИИ ---
+        function t(key) { return (I18N[currentLang] && I18N[currentLang][key]) || (I18N['ru'][key]) || key; }
+
+        function initGameLanguageAndUI(sdkLang) {
+            let savedLang = SafeStorage.get('mahjong_lang');
+            if (savedLang && SUPPORTED_LANGS.includes(savedLang)) { currentLang = savedLang; } 
+            else if (sdkLang) {
+                let userLang = sdkLang.toLowerCase();
+                if (SUPPORTED_LANGS.includes(userLang)) { currentLang = userLang; } 
+                else if (userLang.startsWith('tr')) { currentLang = 'tr'; } else if (userLang.startsWith('es')) { currentLang = 'es'; } else if (userLang.startsWith('ru') || userLang.startsWith('be') || userLang.startsWith('uk') || userLang.startsWith('kk')) { currentLang = 'ru'; } else { currentLang = 'en'; }
+            } else {
+                let navLang = (navigator.language || navigator.userLanguage || 'ru').toLowerCase().slice(0, 2);
+                if (SUPPORTED_LANGS.includes(navLang)) currentLang = navLang; else currentLang = 'ru';
+            }
+            applyLanguageUI(); updateMenuLevelText();
+        }
+
+        function setLanguage(langKey, save = true) {
+            if (!SUPPORTED_LANGS.includes(langKey)) return;
+            currentLang = langKey; if (save) SafeStorage.set('mahjong_lang', currentLang);
+            applyLanguageUI(); updateMenuLevelText(); updateBoostersUI(); renderShop(); renderWheel();
+        }
+
+        function cycleLanguage() {
+            let nextIndex = (SUPPORTED_LANGS.indexOf(currentLang) + 1) % SUPPORTED_LANGS.length;
+            setLanguage(SUPPORTED_LANGS[nextIndex], true);
+        }
+
+        function applyLanguageUI() {
+            document.getElementById('btn-play').innerText = t('play'); document.getElementById('btn-open-shop').innerText = t('shopBtn');
+            document.getElementById('btn-leaderboard').innerText = t('leaderboard'); document.getElementById('btn-settings').innerText = t('settings');
+            document.getElementById('btn-rules').innerText = t('howToPlay'); document.getElementById('btn-reset').innerText = t('resetProgress');
+            document.getElementById('txt-settings-title').innerText = t('settings'); document.getElementById('btn-settings-sound').innerText = AudioSys.enabled ? t('soundOn') : t('soundOff');
+            document.getElementById('btn-settings-music').innerText = AudioSys.musicEnabled ? t('musicOn') : t('musicOff'); document.getElementById('btn-settings-lang').innerText = `🌐 ${t('langName')}`;
+            document.getElementById('btn-close-settings').innerText = t('close'); document.getElementById('txt-lb-title').innerText = t('leaderboard');
+            document.getElementById('btn-close-leaderboard').innerText = t('close'); document.getElementById('txt-shop-title').innerText = t('shopTitle');
+            document.getElementById('txt-shop-bg-title').innerText = t('shopBgTitle'); document.getElementById('txt-shop-snd-title').innerText = t('shopSndTitle');
+            document.getElementById('btn-open-wheel').innerText = t('wheelDaily'); document.getElementById('btn-close-shop').innerText = t('close');
+            document.getElementById('txt-wheel-title').innerText = t('wheelTitle'); document.getElementById('btn-close-wheel').innerText = t('backToShop');
+            document.getElementById('txt-rules-title').innerText = t('rulesTitle'); document.getElementById('txt-rules-body').innerHTML = `<p>${t('rules1')}</p><p>${t('rules2')}</p><p>${t('rules3')}</p>`;
+            document.getElementById('btn-close-rules').innerText = t('understood'); document.getElementById('txt-nomoves-title').innerText = t('noMovesTitle');
+            document.getElementById('txt-nomoves-body').innerText = t('noMovesDesc'); document.getElementById('btn-modal-shuffle').innerText = `🎥 ${t('mix')}`;
+            document.getElementById('btn-close-no-moves').innerText = t('useBoosterBtn'); document.getElementById('btn-menu').innerText = t('menuHome');
+            document.getElementById('btn-game-settings').innerText = t('settings'); document.getElementById('txt-booster-mix').innerText = t('mix');
+            document.getElementById('txt-ad-title').innerText = t('adTitle'); document.getElementById('txt-ad-body').innerText = t('adDesc');
+            document.getElementById('level-complete-text').innerText = t('levelComplete');
+        }
+
+        function createParticles() {
+            const container = document.getElementById('particles-container'); container.innerHTML = '';
+            for(let i=0; i<30; i++) { let p = document.createElement('div'); p.classList.add('particle'); let size = Math.random() * 4 + 2; p.style.width = size + 'px'; p.style.height = size + 'px'; p.style.left = Math.random() * 100 + 'vw'; p.style.animationDuration = (Math.random() * 10 + 10) + 's'; p.style.animationDelay = (Math.random() * 10) + 's'; container.appendChild(p); }
+        }
+
+        function getPlayerRank() { 
+            let meLabel = currentLang === 'ru' ? 'ВЫ' : (currentLang === 'tr' ? 'SEN' : (currentLang === 'es' ? 'TÚ' : 'YOU'));
+            let allPlayers = [...mockLeaderboard, { name: meLabel, score: totalScore, isMe: true }]; 
+            allPlayers.sort((a, b) => b.score - a.score); 
+            let rank = allPlayers.findIndex(p => p.isMe) + 1; 
+            return { rank, list: allPlayers }; 
+        }
+
+        function openLeaderboard() {
+            AudioSys.init(); AudioSys.playClick(true);
+            let data = getPlayerRank(); let container = document.getElementById('lb-container'); container.innerHTML = '';
+            data.list.slice(0, 50).forEach((p, idx) => { let row = document.createElement('div'); row.className = 'lb-row' + (p.isMe ? ' me' : ''); row.innerHTML = `<span class="lb-rank">#${idx + 1}</span><span class="lb-name">${p.name}</span><span class="lb-score">${p.score}</span>`; container.appendChild(row); if (p.isMe) { setTimeout(() => { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); } });
+            document.getElementById('leaderboard-modal').style.display = 'flex';
+        }
+        
+        function renderShop() {
+            document.getElementById('shop-coins-header').innerText = `${t('yourCoins')}${totalCoins}`;
+            let bgContainer = document.getElementById('shop-bgs-container'); bgContainer.innerHTML = '';
+            ShopData.bgs.forEach(item => {
+                let isOwned = userInventory.includes(item.id); let isEquipped = eqBg === item.id; let btnHtml = '';
+                if (isEquipped) btnHtml = `<button class="btn-shop btn-equipped">${t('equipped')}</button>`;
+                else if (isOwned) btnHtml = `<button class="btn-shop btn-equip" onclick="equipItem('${item.id}', 'bg')">${t('equip')}</button>`;
+                else btnHtml = `<button class="btn-shop btn-buy" onclick="buyItem('${item.id}', 'bg', ${item.price})">💰 ${item.price}</button>`;
+                let name = item.name[currentLang] || item.name['en'] || item.name['ru']; let desc = item.desc[currentLang] || item.desc['en'] || item.desc['ru'];
+                bgContainer.innerHTML += `<div class="shop-item ${isEquipped ? 'equipped' : ''}"> <div class="shop-item-info"> <span class="shop-item-name">${name}</span> <span class="shop-item-desc">${desc}</span> </div> ${btnHtml} </div>`;
+            });
+            let sndContainer = document.getElementById('shop-sounds-container'); sndContainer.innerHTML = '';
+            ShopData.sounds.forEach(item => {
+                let isOwned = userInventory.includes(item.id); let isEquipped = eqSnd === item.id; let btnHtml = '';
+                if (isEquipped) btnHtml = `<button class="btn-shop btn-equipped">${t('equipped')}</button>`;
+                else if (isOwned) btnHtml = `<button class="btn-shop btn-equip" onclick="equipItem('${item.id}', 'snd')">${t('equip')}</button>`;
+                else btnHtml = `<button class="btn-shop btn-buy" onclick="buyItem('${item.id}', 'snd', ${item.price})">💰 ${item.price}</button>`;
+                let name = item.name[currentLang] || item.name['en'] || item.name['ru']; let desc = item.desc[currentLang] || item.desc['en'] || item.desc['ru'];
+                sndContainer.innerHTML += `<div class="shop-item ${isEquipped ? 'equipped' : ''}"> <div class="shop-item-info"> <span class="shop-item-name">${name}</span> <span class="shop-item-desc">${desc}</span> </div> ${btnHtml} </div>`;
+            });
+        }
+
+        window.buyItem = function(id, type, price) {
+            AudioSys.init();
+            if (totalCoins >= price) { totalCoins -= price; SafeStorage.set('mahjong_coins', totalCoins); userInventory.push(id); SafeStorage.set('mahjong_inventory', JSON.stringify(userInventory)); updateScoreDisplay(); AudioSys.playWin(); renderShop(); } 
+            else { AudioSys.playError(); alert(t('notEnoughCoins')); }
+        };
+
+        window.equipItem = function(id, type) {
+            AudioSys.init(); AudioSys.playClick(true);
+            if (type === 'bg') { eqBg = id; SafeStorage.set('mahjong_eq_bg', eqBg); applyEquippedBg(); }
+            if (type === 'snd') { eqSnd = id; SafeStorage.set('mahjong_eq_snd', eqSnd); AudioSys.restartAmbient(); }
+            renderShop();
+        };
+
         function getChapterName(level) {
-            let chapterIndex = Math.floor((level - 1) / 10);
-            let chapterNum = chapterIndex + 1;
-            let list = baseChapters[currentLang] || baseChapters['en'];
-            let title = list[chapterIndex % list.length];
+            let chapterIndex = Math.floor((level - 1) / 10); let chapterNum = chapterIndex + 1; let list = baseChapters[currentLang] || baseChapters['en']; let title = list[chapterIndex % list.length];
             return `${t('chapter')} ${chapterNum}: ${title}`;
         }
 
@@ -997,12 +724,8 @@
         }
 
         function getLayoutCoords(level) {
-            let diff = getDifficultyParams(level);
-            let seed = level * 13371337;
-            function rnd() { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }
-            let shapeIndex = (level - 1) % 30;
-            let layout = [];
-
+            let diff = getDifficultyParams(level); let seed = level * 13371337; function rnd() { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }
+            let shapeIndex = (level - 1) % 30; let layout = [];
             for (let attempt = 0; attempt < 150; attempt++) {
                 layout = []; let grid = {};
                 for (let z = 0; z < diff.maxLayers; z++) {
@@ -1011,7 +734,6 @@
                         for (let x = shrink; x <= 8 - shrink; x += 2) {
                             let isSupported = (z === 0) || grid[`${x-1},${y-1},${z-1}`] || grid[`${x+1},${y-1},${z-1}`] || grid[`${x-1},${y+1},${z-1}`] || grid[`${x+1},${y+1},${z-1}`] || grid[`${x},${y},${z-1}`];
                             if (!isSupported) continue;
-
                             let cx = x - 4, cy = y - 4; let isMasked = true;
                             switch (shapeIndex) {
                                 case 0: break; case 1: if (Math.abs(cx)<=2 && Math.abs(cy)<=2 && z<2) isMasked = false; break; 
@@ -1024,15 +746,10 @@
                             if (isMasked && rnd() < diff.density) { currentLayerTiles.push({x, y, z}); }
                         }
                     }
-                    currentLayerTiles.forEach(t => {
-                        let mx = 8 - t.x;
-                        if (!grid[`${t.x},${t.y},${t.z}`]) { layout.push({...t}); grid[`${t.x},${t.y},${t.z}`] = true; }
-                        if (!grid[`${mx},${t.y},${t.z}`]) { layout.push({x: mx, y: t.y, z: t.z}); grid[`${mx},${t.y},${t.z}`] = true; }
-                    });
+                    currentLayerTiles.forEach(t => { let mx = 8 - t.x; if (!grid[`${t.x},${t.y},${t.z}`]) { layout.push({...t}); grid[`${t.x},${t.y},${t.z}`] = true; } if (!grid[`${mx},${t.y},${t.z}`]) { layout.push({x: mx, y: t.y, z: t.z}); grid[`${mx},${t.y},${t.z}`] = true; } });
                 }
                 if (layout.length % 2 !== 0) { let idx = layout.findIndex(t => t.x === 4); if (idx !== -1) layout.splice(idx, 1); else layout.pop(); }
                 if (layout.length < 8) continue;
-
                 let initialFreeCount = 0;
                 layout.forEach(tile => {
                     let blockedTop = false, blockedLeft = false, blockedRight = false;
@@ -1040,18 +757,13 @@
                         if (other === tile) continue;
                         let overlapX = Math.abs(tile.x - other.x) < 2, overlapY = Math.abs(tile.y - other.y) < 2;
                         if (other.z > tile.z && overlapX && overlapY) blockedTop = true;
-                        if (other.z === tile.z && overlapY) {
-                            if (other.x === tile.x - 2) blockedLeft = true; if (other.x === tile.x + 2) blockedRight = true;
-                        }
+                        if (other.z === tile.z && overlapY) { if (other.x === tile.x - 2) blockedLeft = true; if (other.x === tile.x + 2) blockedRight = true; }
                     }
                     if (!blockedTop && (!blockedLeft || !blockedRight)) initialFreeCount++;
                 });
-
                 if (initialFreeCount >= 2) return layout;
             }
-
-            layout = [];
-            for(let i=0; i<12; i++) { let lx = (i%4)*2; let ly = Math.floor(i/4)*2; layout.push({x: lx, y: ly, z: 0}); }
+            layout = []; for(let i=0; i<12; i++) { let lx = (i%4)*2; let ly = Math.floor(i/4)*2; layout.push({x: lx, y: ly, z: 0}); }
             return layout;
         }
 
@@ -1067,93 +779,27 @@
             let chapterTitle = getChapterName(currentLevel); 
             document.getElementById('menu-chapter-title').innerText = chapterTitle; 
             document.getElementById('hud-chapter-text').innerText = chapterTitle;
-            applyMaterial(currentLevel); 
-            renderPreview(currentLevel); 
+            applyMaterial(currentLevel); renderPreview(currentLevel); 
 
             let diff = getDifficultyParams(currentLevel);
             let diffBadge = document.getElementById('hud-difficulty');
-            if (diffBadge) {
-                diffBadge.innerText = diff.text;
-                diffBadge.style.backgroundColor = diff.color;
-                diffBadge.style.color = (diff.color === "#f1c40f") ? "#000" : "#fff";
-            }
+            if (diffBadge) { diffBadge.innerText = diff.text; diffBadge.style.backgroundColor = diff.color; diffBadge.style.color = (diff.color === "#f1c40f") ? "#000" : "#fff"; }
 
-            const btnNextMenu = document.getElementById('btn-next-level');
-            const btnPrevMenu = document.getElementById('btn-prev-level');
-            const btnNextHud = document.getElementById('btn-hud-next');
-            const btnPrevHud = document.getElementById('btn-hud-prev');
-
+            const btnNextMenu = document.getElementById('btn-next-level'); const btnPrevMenu = document.getElementById('btn-prev-level');
+            const btnNextHud = document.getElementById('btn-hud-next'); const btnPrevHud = document.getElementById('btn-hud-prev');
             if (btnPrevMenu) btnPrevMenu.style.opacity = currentLevel > 1 ? '1' : '0.3';
             if (btnPrevHud) btnPrevHud.style.opacity = currentLevel > 1 ? '1' : '0.3';
             if (btnNextMenu) btnNextMenu.style.opacity = currentLevel < unlockedLevel ? '1' : '0.3';
             if (btnNextHud) btnNextHud.style.opacity = currentLevel < unlockedLevel ? '1' : '0.3';
         }
-        
-        updateMenuLevelText(); updateScoreDisplay(); updateBoostersUI();
-        
-        document.getElementById('btn-play').addEventListener('click', () => { 
-            AudioSys.init(); 
-            Platform.gameplayStart();
-            document.getElementById('main-menu').style.display = 'none'; 
-            document.getElementById('game-screen').style.display = 'flex'; 
-            initGame(); 
-        });
-        
-        document.getElementById('btn-prev-level').addEventListener('click', () => { 
-            if(currentLevel > 1) { 
-                currentLevel--; SafeStorage.set('mahjong_level', currentLevel); updateMenuLevelText(); updateBoostersUI(); 
-            }
-        });
-        document.getElementById('btn-next-level').addEventListener('click', () => { 
-            if(currentLevel < unlockedLevel) { 
-                currentLevel++; SafeStorage.set('mahjong_level', currentLevel); updateMenuLevelText(); updateBoostersUI(); 
-            }
-        });
-        
-        document.getElementById('btn-hud-prev').addEventListener('click', () => { 
-            if(currentLevel > 1) { 
-                currentLevel--; SafeStorage.set('mahjong_level', currentLevel); initGame(); 
-            }
-        });
-        document.getElementById('btn-hud-next').addEventListener('click', () => { 
-            if(currentLevel < unlockedLevel) { 
-                currentLevel++; SafeStorage.set('mahjong_level', currentLevel); initGame(); 
-            }
-        });
-
-        document.getElementById('btn-reset').addEventListener('click', () => {
-            if (confirm(t('resetConfirm'))) { 
-                currentLevel = 1; unlockedLevel = 1; totalScore = 0; totalCoins = 0; freeBoosters = {hint:0, undo:0, bomb:0, light:0};
-                SafeStorage.set('mahjong_level', 1); 
-                SafeStorage.set('mahjong_unlocked_level', 1);
-                SafeStorage.set('mahjong_score', 0); 
-                SafeStorage.set('mahjong_coins', 0);
-                SafeStorage.remove('mahjong_free_boosters'); SafeStorage.remove('mahjong_tutorial_done'); 
-                updateMenuLevelText(); updateScoreDisplay(); updateBoostersUI(); 
-            }
-        });
-        
-        document.getElementById('btn-rules').addEventListener('click', () => { AudioSys.init(); document.getElementById('rules-modal').style.display = 'flex'; });
-        document.getElementById('btn-close-rules').addEventListener('click', () => document.getElementById('rules-modal').style.display = 'none');
-        
-        document.getElementById('btn-menu').addEventListener('click', () => { 
-            Platform.gameplayStop();
-            document.getElementById('game-screen').style.display = 'none'; 
-            document.getElementById('main-menu').style.display = 'flex'; 
-            updateMenuLevelText(); 
-        });
 
         function updateScoreDisplay() { 
             let elScore = document.getElementById('hud-score'); let elCoins = document.getElementById('hud-coins');
-            if(elScore) elScore.innerText = `${t('yourScore')}${totalScore}`; 
-            if(elCoins) elCoins.innerText = `💰 ${totalCoins}`; 
+            if(elScore) elScore.innerText = `${t('yourScore')}${totalScore}`; if(elCoins) elCoins.innerText = `💰 ${totalCoins}`; 
             updateBoostersUI(); 
         }
         
-        function applyMaterial(level) {
-            let root = document.documentElement; let matIndex = (level - 1) % materials.length; let mat = materials[matIndex];
-            root.style.setProperty('--tileBg', mat.tileBg); root.style.setProperty('--tileSide', mat.tileSide); root.style.setProperty('--tileColor', mat.tileColor); 
-        }
+        function applyMaterial(level) { let root = document.documentElement; let matIndex = (level - 1) % materials.length; let mat = materials[matIndex]; root.style.setProperty('--tileBg', mat.tileBg); root.style.setProperty('--tileSide', mat.tileSide); root.style.setProperty('--tileColor', mat.tileColor); }
 
         function getSymbolsForLevel(level) {
             let s = level * 12345; function localRnd() { s = (s * 1664525 + 1013904223) % 4294967296; return s / 4294967296; }
@@ -1162,16 +808,13 @@
         }
 
         function forceSolvableAssignment(layout, pairsPool) {
-            let sorted = [...layout].sort((a, b) => b.z - a.z || a.y - b.y || a.x - b.x);
-            let pool = [...pairsPool];
+            let sorted = [...layout].sort((a, b) => b.z - a.z || a.y - b.y || a.x - b.x); let pool = [...pairsPool];
             for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-            sorted.forEach((tile, i) => { tile.symbol = pool[Math.floor(i / 2)]; });
-            return sorted;
+            sorted.forEach((tile, i) => { tile.symbol = pool[Math.floor(i / 2)]; }); return sorted;
         }
         
         function assignSymbolsSmart(layout, pairsPool, customRnd) {
-            let unassigned = layout.map(pos => ({...pos, symbol: null}));
-            let symbolPool = [...pairsPool];
+            let unassigned = layout.map(pos => ({...pos, symbol: null})); let symbolPool = [...pairsPool];
             for (let i = symbolPool.length - 1; i > 0; i--) { const j = Math.floor(customRnd() * (i + 1)); [symbolPool[i], symbolPool[j]] = [symbolPool[j], symbolPool[i]]; }
             let remaining = [...unassigned]; let pairsSequence = [];
             while(remaining.length > 1) {
@@ -1193,50 +836,29 @@
             return unassigned;
         }
 
-        function updateProgressBar() {
-            if (totalTilesForLevel === 0) return;
-            let percentComplete = ((totalTilesForLevel - activeTiles.length) / totalTilesForLevel) * 100;
-            document.getElementById('progress-bar').style.width = percentComplete + '%';
-        }
+        function updateProgressBar() { if (totalTilesForLevel === 0) return; let percentComplete = ((totalTilesForLevel - activeTiles.length) / totalTilesForLevel) * 100; document.getElementById('progress-bar').style.width = percentComplete + '%'; }
 
         function initGame() {
             window.isLevelCompleting = false; 
-            
             const board = document.getElementById('game-board'); board.innerHTML = ''; activeTiles = []; firstTile = null; matchHistory = [];
             document.getElementById('message').innerHTML = ''; document.getElementById('btn-shuffle').classList.remove('btn-pulse'); document.getElementById('progress-bar').style.width = '0%';
             comboCount = 0; isGameLocked = false; isAnimating = false; updateMenuLevelText(); updateScoreDisplay(); updateBoostersUI();
-            
-            let diff = getDifficultyParams(currentLevel);
-            let diffBadge = document.getElementById('hud-difficulty'); diffBadge.innerText = diff.text; diffBadge.style.backgroundColor = diff.color; diffBadge.style.color = (diff.color === "#f1c40f") ? "#000" : "#fff"; 
-            
+            let diff = getDifficultyParams(currentLevel); let diffBadge = document.getElementById('hud-difficulty'); diffBadge.innerText = diff.text; diffBadge.style.backgroundColor = diff.color; diffBadge.style.color = (diff.color === "#f1c40f") ? "#000" : "#fff"; 
             applyMaterial(currentLevel); 
             
-            let finalLayout = getLayoutCoords(currentLevel);
-            let baseSymbols = getSymbolsForLevel(currentLevel);
-            let pairsPool = [];
+            let finalLayout = getLayoutCoords(currentLevel); let baseSymbols = getSymbolsForLevel(currentLevel); let pairsPool = [];
             for(let i=0; i<finalLayout.length/2; i++) { pairsPool.push(baseSymbols[Math.floor(Math.random() * baseSymbols.length)]); }
-
             let prepared = null; let attemptMix = 0;
             while (!prepared && attemptMix < 100) { attemptMix++; prepared = assignSymbolsSmart(finalLayout, pairsPool, Math.random); }
-
             if (prepared) { finalLayout = prepared; } else { finalLayout = forceSolvableAssignment(finalLayout, pairsPool); }
 
-            let cyclePos = (currentLevel - 1) % 10;
-            let hideCount = 0;
-            if (cyclePos >= 3 && cyclePos <= 5) hideCount = 4;
-            else if (cyclePos >= 6 && cyclePos <= 8) hideCount = 8;
-            else if (cyclePos === 9) hideCount = 14;
-            
-            hideCount = Math.min(hideCount, Math.floor(finalLayout.length * 0.4));
-            if (hideCount % 2 !== 0) hideCount--;
-
+            let cyclePos = (currentLevel - 1) % 10; let hideCount = 0;
+            if (cyclePos >= 3 && cyclePos <= 5) hideCount = 4; else if (cyclePos >= 6 && cyclePos <= 8) hideCount = 8; else if (cyclePos === 9) hideCount = 14;
+            hideCount = Math.min(hideCount, Math.floor(finalLayout.length * 0.4)); if (hideCount % 2 !== 0) hideCount--;
             if (hideCount > 0) {
                 let hideIndices = Array.from({length: finalLayout.length}, (_, i) => i);
                 for (let i = hideIndices.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [hideIndices[i], hideIndices[j]] = [hideIndices[j], hideIndices[i]]; }
-                for(let i=0; i<hideCount; i++) {
-                    finalLayout[hideIndices[i]].isHidden = true;
-                    finalLayout[hideIndices[i]].coverSymbol = coverSymbols[0];
-                }
+                for(let i=0; i<hideCount; i++) { finalLayout[hideIndices[i]].isHidden = true; finalLayout[hideIndices[i]].coverSymbol = coverSymbols[0]; }
             }
             
             totalTilesForLevel = finalLayout.length;
@@ -1244,12 +866,10 @@
                 const el = document.createElement('div'); el.classList.add('tile'); el.innerText = obj.symbol;
                 el.style.setProperty('--x', obj.x); el.style.setProperty('--y', obj.y); el.style.setProperty('--z', obj.z); el.style.zIndex = (obj.z * 100) + obj.y;
                 if (obj.isHidden) { el.classList.add('is-hidden'); el.setAttribute('data-cover', obj.coverSymbol); }
-                obj.el = el; obj.isMatched = false; obj.isTempOpen = false; 
-                el.addEventListener('click', (e) => handleTileClick(obj, e));
+                obj.el = el; obj.isMatched = false; obj.isTempOpen = false; el.addEventListener('click', (e) => handleTileClick(obj, e));
                 board.appendChild(el); activeTiles.push(obj);
             });
             updateFreeState(); updateProgressBar();
-
             if (currentLevel === 1 && !SafeStorage.get('mahjong_tutorial_done')) { setTimeout(startTutorial, 600); }
         }
 
@@ -1260,374 +880,136 @@
                     if (other === tile) continue;
                     let overlapX = Math.abs(tile.x - other.x) < 2, overlapY = Math.abs(tile.y - other.y) < 2;
                     if (other.z > tile.z && overlapX && overlapY) blockedTop = true;
-                    if (other.z === tile.z && overlapY) {
-                        if (other.x === tile.x - 2) blockedLeft = true; if (other.x === tile.x + 2) blockedRight = true;
-                    }
+                    if (other.z === tile.z && overlapY) { if (other.x === tile.x - 2) blockedLeft = true; if (other.x === tile.x + 2) blockedRight = true; }
                 }
-                tile.isFree = !blockedTop && (!blockedLeft || !blockedRight);
-                tile.el.classList.toggle('blocked', !tile.isFree);
+                tile.isFree = !blockedTop && (!blockedLeft || !blockedRight); tile.el.classList.toggle('blocked', !tile.isFree);
             });
             checkGameState();
         }
 
         function checkGameState() {
             if (activeTiles.length === 0 || window.isLevelCompleting) return;
-            
-            let freeTiles = activeTiles.filter(t => t.isFree && !t.isMatched);
-            let hasMoves = false; let symbolsSet = new Set();
-            
-            for (let t of freeTiles) {
-                if (t.isHidden) { hasMoves = true; break; }
-                if (symbolsSet.has(t.symbol)) { hasMoves = true; break; } 
-                symbolsSet.add(t.symbol); 
-            }
-
+            let freeTiles = activeTiles.filter(t => t.isFree && !t.isMatched); let hasMoves = false; let symbolsSet = new Set();
+            for (let t of freeTiles) { if (t.isHidden) { hasMoves = true; break; } if (symbolsSet.has(t.symbol)) { hasMoves = true; break; } symbolsSet.add(t.symbol); }
             let btnShuffle = document.getElementById('btn-shuffle');
             if (!hasMoves) { 
-                isGameLocked = true; 
-                if (firstTile) { firstTile.el.classList.remove('selected'); firstTile = null; }
-                document.getElementById('message').innerText = t('noMovesNotice'); 
-                document.getElementById('message').style.color = '#e74c3c'; 
-                btnShuffle.classList.add('btn-pulse'); 
-                document.getElementById('no-moves-modal').style.display = 'flex';
-            } else { 
-                isGameLocked = false; document.getElementById('message').innerHTML = ''; 
-                btnShuffle.classList.remove('btn-pulse'); document.getElementById('no-moves-modal').style.display = 'none';
-            }
+                isGameLocked = true; if (firstTile) { firstTile.el.classList.remove('selected'); firstTile = null; }
+                document.getElementById('message').innerText = t('noMovesNotice'); document.getElementById('message').style.color = '#e74c3c'; 
+                btnShuffle.classList.add('btn-pulse'); document.getElementById('no-moves-modal').style.display = 'flex';
+            } else { isGameLocked = false; document.getElementById('message').innerHTML = ''; btnShuffle.classList.remove('btn-pulse'); document.getElementById('no-moves-modal').style.display = 'none'; }
             updateBoostersUI();
         }
 
-        document.getElementById('btn-modal-shuffle').addEventListener('click', () => { document.getElementById('no-moves-modal').style.display = 'none'; watchAdToShuffle(); });
-        document.getElementById('btn-close-no-moves').addEventListener('click', () => { document.getElementById('no-moves-modal').style.display = 'none'; });
-
         function levelComplete() {
-            if (window.isLevelCompleting) return; 
-            window.isLevelCompleting = true; 
-            
+            if (window.isLevelCompleting) return; window.isLevelCompleting = true; 
             Platform.gameplayStop();
-
             try { AudioSys.playWin(); } catch(e){}
-            
             try { 
-                if (currentLevel >= unlockedLevel) {
-                    unlockedLevel = currentLevel + 1;
-                    SafeStorage.set('mahjong_unlocked_level', unlockedLevel);
-                }
-                currentLevel++; 
-                SafeStorage.set('mahjong_level', currentLevel); 
+                if (currentLevel >= unlockedLevel) { unlockedLevel = currentLevel + 1; SafeStorage.set('mahjong_unlocked_level', unlockedLevel); }
+                currentLevel++; SafeStorage.set('mahjong_level', currentLevel); 
             } catch(e){}
-
             shootEpicConfetti(); launchFireworks();
-            
-            let fallbackTimer = setTimeout(() => {
-                const overlay = document.getElementById('level-complete-overlay');
-                if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }
-                Platform.gameplayStart();
-                initGame(); 
-            }, 3500);
-
+            let fallbackTimer = setTimeout(() => { const overlay = document.getElementById('level-complete-overlay'); if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); } Platform.gameplayStart(); initGame(); }, 3500);
             try {
-                const overlay = document.getElementById('level-complete-overlay');
-                const praiseEl = document.getElementById('level-complete-praise');
-                const textEl = document.getElementById('level-complete-text');
-                const ratingEl = document.getElementById('level-complete-rating');
-                
-                let praisesList = t('praises');
-                if (praiseEl) praiseEl.innerText = praisesList[Math.floor(Math.random() * praisesList.length)];
-                
-                let rankData = getPlayerRank();
-                if (ratingEl) ratingEl.innerText = t('yourRank')(rankData.rank, totalScore);
-
+                const overlay = document.getElementById('level-complete-overlay'); const praiseEl = document.getElementById('level-complete-praise');
+                const textEl = document.getElementById('level-complete-text'); const ratingEl = document.getElementById('level-complete-rating');
+                let praisesList = t('praises'); if (praiseEl) praiseEl.innerText = praisesList[Math.floor(Math.random() * praisesList.length)];
+                let rankData = getPlayerRank(); if (ratingEl) ratingEl.innerText = t('yourRank')(rankData.rank, totalScore);
                 if (overlay) { overlay.style.display = 'flex'; overlay.style.opacity = '1'; }
                 if (praiseEl) { praiseEl.style.transform = 'scale(1)'; praiseEl.style.opacity = '1'; }
-                if (textEl) textEl.style.opacity = '1';
-                if (ratingEl) ratingEl.style.opacity = '1';
-
+                if (textEl) textEl.style.opacity = '1'; if (ratingEl) ratingEl.style.opacity = '1';
                 setTimeout(() => { 
-                    if (overlay) overlay.style.opacity = '0';
-                    if (praiseEl) praiseEl.style.transform = 'scale(0.8)';
-                    if (ratingEl) ratingEl.style.opacity = '0';
-                    
-                    setTimeout(() => {
-                        if (overlay) overlay.style.display = 'none';
-                        clearTimeout(fallbackTimer);
-                        Platform.gameplayStart();
-                        initGame(); 
-                    }, 500);
+                    if (overlay) overlay.style.opacity = '0'; if (praiseEl) praiseEl.style.transform = 'scale(0.8)'; if (ratingEl) ratingEl.style.opacity = '0';
+                    setTimeout(() => { if (overlay) overlay.style.display = 'none'; clearTimeout(fallbackTimer); Platform.gameplayStart(); initGame(); }, 500);
                 }, 3000); 
-
             } catch(e) { console.error("Victory screen failed", e); }
         }
 
-        function shootEpicConfetti() {
-            try {
-                const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#ff00ff', '#00ffff'];
-                for(let i = 0; i < 150; i++) {
-                    let conf = document.createElement('div'); conf.classList.add('epic-confetti');
-                    let size = Math.random() * 8 + 4; conf.style.width = size + 'px'; conf.style.height = (Math.random() > 0.5 ? size * 2 : size) + 'px';
-                    conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    if(Math.random() > 0.5) conf.style.borderRadius = '50%';
-                    let angle = (Math.PI / 2) + (Math.random() * Math.PI - Math.PI / 2); let velocity = 50 + Math.random() * 150;
-                    conf.style.setProperty('--tx', (Math.cos(angle) * velocity) + 'vw'); conf.style.setProperty('--ty', (-Math.random() * 80 - 20) + 'vh');
-                    conf.style.setProperty('--rot1', (Math.random() * 360) + 'deg'); conf.style.setProperty('--rot2', (Math.random() * 720) + 'deg');
-                    conf.style.setProperty('--dur', (Math.random() * 1.5 + 1.5) + 's');
-                    document.body.appendChild(conf); setTimeout(() => { if(conf.parentNode) conf.parentNode.removeChild(conf); }, 3000);
-                }
-            } catch(e) {}
-        }
-
-        function launchFireworks() {
-            try {
-                const overlay = document.getElementById('level-complete-overlay');
-                const colors = ['#ffdf00', '#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#ff00ff'];
-                let fwInterval = setInterval(() => {
-                    if(!window.isLevelCompleting) { clearInterval(fwInterval); return; }
-                    let startX = 20 + Math.random() * 60; let startY = 20 + Math.random() * 50; let amount = 30 + Math.random() * 20;
-                    let color = colors[Math.floor(Math.random() * colors.length)];
-                    for(let i=0; i<amount; i++) {
-                        let p = document.createElement('div'); p.className = 'fw-particle';
-                        p.style.left = startX + 'vw'; p.style.top = startY + 'vh'; p.style.width = '6px'; p.style.height = '6px'; p.style.borderRadius = '50%';
-                        p.style.backgroundColor = (Math.random() > 0.3) ? color : '#ffffff'; p.style.boxShadow = `0 0 8px ${color}`;
-                        let angle = Math.random() * Math.PI * 2; let velocity = 50 + Math.random() * 100;
-                        p.style.setProperty('--dx', (Math.cos(angle) * velocity) + 'px'); p.style.setProperty('--dy', (Math.sin(angle) * velocity + 30) + 'px'); 
-                        if(overlay) overlay.appendChild(p); setTimeout(() => { if(p.parentNode) p.parentNode.removeChild(p); }, 1000);
-                    }
-                }, 350);
-                setTimeout(() => clearInterval(fwInterval), 2500);
-            } catch(e) {}
-        }
-
-        function showFloatingText(element, points) {
-            let rect = element.getBoundingClientRect(); let floatEl = document.createElement('div'); floatEl.classList.add('floating-text');
-            floatEl.innerText = `+${points} 🏆`;
-            floatEl.style.left = (rect.left + window.scrollX + rect.width / 4) + 'px'; floatEl.style.top = (rect.top + window.scrollY - 30) + 'px';
-            document.body.appendChild(floatEl); setTimeout(() => floatEl.remove(), 1000);
-        }
-
-        function getSymbolCategory(sym) {
-            for (let i = 0; i < themeSets.length; i++) { 
-                if (themeSets[i].includes(sym)) {
-                    if ([0, 1, 6].includes(i)) return 'food';
-                    if ([2].includes(i)) return 'tech';
-                    if ([3].includes(i)) return 'animal';
-                    if ([4].includes(i)) return 'transport';
-                    if ([8].includes(i)) return 'zodiac';
-                    return 'general';
-                }
-            } 
-            return 'general';
-        }
-
+        function shootEpicConfetti() { try { const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#ff00ff', '#00ffff']; for(let i = 0; i < 150; i++) { let conf = document.createElement('div'); conf.classList.add('epic-confetti'); let size = Math.random() * 8 + 4; conf.style.width = size + 'px'; conf.style.height = (Math.random() > 0.5 ? size * 2 : size) + 'px'; conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]; if(Math.random() > 0.5) conf.style.borderRadius = '50%'; let angle = (Math.PI / 2) + (Math.random() * Math.PI - Math.PI / 2); let velocity = 50 + Math.random() * 150; conf.style.setProperty('--tx', (Math.cos(angle) * velocity) + 'vw'); conf.style.setProperty('--ty', (-Math.random() * 80 - 20) + 'vh'); conf.style.setProperty('--rot1', (Math.random() * 360) + 'deg'); conf.style.setProperty('--rot2', (Math.random() * 720) + 'deg'); conf.style.setProperty('--dur', (Math.random() * 1.5 + 1.5) + 's'); document.body.appendChild(conf); setTimeout(() => { if(conf.parentNode) conf.parentNode.removeChild(conf); }, 3000); } } catch(e) {} }
+        function launchFireworks() { try { const overlay = document.getElementById('level-complete-overlay'); const colors = ['#ffdf00', '#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#ff00ff']; let fwInterval = setInterval(() => { if(!window.isLevelCompleting) { clearInterval(fwInterval); return; } let startX = 20 + Math.random() * 60; let startY = 20 + Math.random() * 50; let amount = 30 + Math.random() * 20; let color = colors[Math.floor(Math.random() * colors.length)]; for(let i=0; i<amount; i++) { let p = document.createElement('div'); p.className = 'fw-particle'; p.style.left = startX + 'vw'; p.style.top = startY + 'vh'; p.style.width = '6px'; p.style.height = '6px'; p.style.borderRadius = '50%'; p.style.backgroundColor = (Math.random() > 0.3) ? color : '#ffffff'; p.style.boxShadow = `0 0 8px ${color}`; let angle = Math.random() * Math.PI * 2; let velocity = 50 + Math.random() * 100; p.style.setProperty('--dx', (Math.cos(angle) * velocity) + 'px'); p.style.setProperty('--dy', (Math.sin(angle) * velocity + 30) + 'px'); if(overlay) overlay.appendChild(p); setTimeout(() => { if(p.parentNode) p.parentNode.removeChild(p); }, 1000); } }, 350); setTimeout(() => clearInterval(fwInterval), 2500); } catch(e) {} }
+        function showFloatingText(element, points) { let rect = element.getBoundingClientRect(); let floatEl = document.createElement('div'); floatEl.classList.add('floating-text'); floatEl.innerText = `+${points} 🏆`; floatEl.style.left = (rect.left + window.scrollX + rect.width / 4) + 'px'; floatEl.style.top = (rect.top + window.scrollY - 30) + 'px'; document.body.appendChild(floatEl); setTimeout(() => floatEl.remove(), 1000); }
+        function getSymbolCategory(sym) { for (let i = 0; i < themeSets.length; i++) { if (themeSets[i].includes(sym)) { if ([0, 1, 6].includes(i)) return 'food'; if ([2].includes(i)) return 'tech'; if ([3].includes(i)) return 'animal'; if ([4].includes(i)) return 'transport'; if ([8].includes(i)) return 'zodiac'; return 'general'; } } return 'general'; }
+        
         function spawnSmartBurst(element, symbol) {
-            let rect = element.getBoundingClientRect(); let centerX = rect.left + window.scrollX + rect.width / 2; let centerY = rect.top + window.scrollY + rect.height / 2;
-            let category = getSymbolCategory(symbol);
-            if (category === 'food') {
-                let basketWrap = document.createElement('div'); basketWrap.className = 'css-basket-wrap'; let basket = document.createElement('div'); basket.className = 'css-basket';
-                basketWrap.appendChild(basket); basketWrap.style.left = centerX + 'px'; basketWrap.style.top = (centerY + 10) + 'px'; document.body.appendChild(basketWrap); setTimeout(() => basketWrap.remove(), 1500);
-            }
+            let rect = element.getBoundingClientRect(); let centerX = rect.left + window.scrollX + rect.width / 2; let centerY = rect.top + window.scrollY + rect.height / 2; let category = getSymbolCategory(symbol);
+            if (category === 'food') { let basketWrap = document.createElement('div'); basketWrap.className = 'css-basket-wrap'; let basket = document.createElement('div'); basket.className = 'css-basket'; basketWrap.appendChild(basket); basketWrap.style.left = centerX + 'px'; basketWrap.style.top = (centerY + 10) + 'px'; document.body.appendChild(basketWrap); setTimeout(() => basketWrap.remove(), 1500); }
             let pOpts = [symbol, '✅', '🟢'];
-            if (category === 'food') pOpts = [symbol, '✅', '🍎', '🍓', '🥐']; else if (category === 'tech') pOpts = [symbol, '✅', '🔋', '⚙️', '💡'];
-            else if (category === 'zodiac') pOpts = [symbol, '✨', '🌙', '🌟', '☄️']; else if (category === 'animal') pOpts = [symbol, '✅', '🐾', '🌿']; else if (category === 'transport') pOpts = [symbol, '✅', '💨', '🏁'];
-            
+            if (category === 'food') pOpts = [symbol, '✅', '🍎', '🍓', '🥐']; else if (category === 'tech') pOpts = [symbol, '✅', '🔋', '⚙️', '💡']; else if (category === 'zodiac') pOpts = [symbol, '✨', '🌙', '🌟', '☄️']; else if (category === 'animal') pOpts = [symbol, '✅', '🐾', '🌿']; else if (category === 'transport') pOpts = [symbol, '✅', '💨', '🏁'];
             let particleCount = 6 + Math.floor(Math.random() * 4); 
-            for (let i = 0; i < particleCount; i++) {
-                let p = document.createElement('div'); p.classList.add('smart-particle'); p.innerText = pOpts[Math.floor(Math.random() * pOpts.length)];
-                p.style.fontSize = (16 + Math.random() * 14) + 'px'; p.style.left = centerX + 'px'; p.style.top = centerY + 'px';
-                let powerX, powerY;
-                if (category === 'food') { let angle = Math.PI + (Math.random() * Math.PI); let dist = 60 + Math.random() * 40; powerX = Math.cos(angle) * dist; powerY = Math.sin(angle) * dist - 30; } 
-                else { let angle = Math.random() * Math.PI * 2; let dist = 50 + Math.random() * 60; powerX = Math.cos(angle) * dist; powerY = Math.sin(angle) * dist - 30; }
-                p.style.setProperty('--tx', powerX + 'px'); p.style.setProperty('--up-y', powerY + 'px'); p.style.setProperty('--ty', (Math.random() * 40 + 20) + 'px'); p.style.setProperty('--rot1', (Math.random() * 180 - 90) + 'deg'); p.style.setProperty('--rot2', (Math.random() * 360 - 180) + 'deg');
-                document.body.appendChild(p); setTimeout(() => p.remove(), 1000);
-            }
+            for (let i = 0; i < particleCount; i++) { let p = document.createElement('div'); p.classList.add('smart-particle'); p.innerText = pOpts[Math.floor(Math.random() * pOpts.length)]; p.style.fontSize = (16 + Math.random() * 14) + 'px'; p.style.left = centerX + 'px'; p.style.top = centerY + 'px'; let powerX, powerY; if (category === 'food') { let angle = Math.PI + (Math.random() * Math.PI); let dist = 60 + Math.random() * 40; powerX = Math.cos(angle) * dist; powerY = Math.sin(angle) * dist - 30; } else { let angle = Math.random() * Math.PI * 2; let dist = 50 + Math.random() * 60; powerX = Math.cos(angle) * dist; powerY = Math.sin(angle) * dist - 30; } p.style.setProperty('--tx', powerX + 'px'); p.style.setProperty('--up-y', powerY + 'px'); p.style.setProperty('--ty', (Math.random() * 40 + 20) + 'px'); p.style.setProperty('--rot1', (Math.random() * 180 - 90) + 'deg'); p.style.setProperty('--rot2', (Math.random() * 360 - 180) + 'deg'); document.body.appendChild(p); setTimeout(() => p.remove(), 1000); }
         }
 
-        function startTutorial() {
-            let pairs = getAvailablePairs(); if (pairs.length === 0) return;
-            tutorialPair = pairs[0]; tutorialMode = true; document.getElementById('tutorial-overlay').style.display = 'block';
-            tutorialPair[0].el.classList.add('tutorial-highlight'); tutorialPair[1].el.classList.add('tutorial-highlight');
-            let finger = document.getElementById('tutorial-finger'); finger.style.display = 'block'; positionFingerOnTile(tutorialPair[0]);
-        }
-
-        function positionFingerOnTile(tileObj) {
-            let finger = document.getElementById('tutorial-finger'); let rect = tileObj.el.getBoundingClientRect();
-            finger.style.left = (rect.left + window.scrollX + rect.width / 2) + 'px'; finger.style.top = (rect.top + window.scrollY + rect.height / 2) + 'px';
-        }
+        function startTutorial() { let pairs = getAvailablePairs(); if (pairs.length === 0) return; tutorialPair = pairs[0]; tutorialMode = true; document.getElementById('tutorial-overlay').style.display = 'block'; tutorialPair[0].el.classList.add('tutorial-highlight'); tutorialPair[1].el.classList.add('tutorial-highlight'); let finger = document.getElementById('tutorial-finger'); finger.style.display = 'block'; positionFingerOnTile(tutorialPair[0]); }
+        function positionFingerOnTile(tileObj) { let finger = document.getElementById('tutorial-finger'); let rect = tileObj.el.getBoundingClientRect(); finger.style.left = (rect.left + window.scrollX + rect.width / 2) + 'px'; finger.style.top = (rect.top + window.scrollY + rect.height / 2) + 'px'; }
 
         function handleTileClick(t, event) { 
-            if (window.isLevelCompleting || isGameLocked || isAnimating) return; 
-            if (t.isMatched) return; 
-            if (tutorialMode) { if (t !== tutorialPair[0] && t !== tutorialPair[1]) return; }
-            if (!t.isFree) return;
-            
+            if (window.isLevelCompleting || isGameLocked || isAnimating) return; if (t.isMatched) return; if (tutorialMode) { if (t !== tutorialPair[0] && t !== tutorialPair[1]) return; } if (!t.isFree) return;
             let justUnlocked = false;
-
-            if (t.isHidden) { 
-                t.isHidden = false; t.isTempOpen = true; 
-                t.el.classList.remove('is-hidden'); t.el.classList.add('flip-anim'); 
-                setTimeout(() => { if(t.el) t.el.classList.remove('flip-anim'); }, 300); 
-                updateFreeState(); justUnlocked = true; AudioSys.playUnlock(); 
-            }
-
-            if (!firstTile) { 
-                t.el.classList.add('selected'); firstTile = t; 
-                if (!justUnlocked) AudioSys.playClick(true); 
-                if (tutorialMode) { let nextTile = (t === tutorialPair[0]) ? tutorialPair[1] : tutorialPair[0]; positionFingerOnTile(nextTile); }
-            
+            if (t.isHidden) { t.isHidden = false; t.isTempOpen = true; t.el.classList.remove('is-hidden'); t.el.classList.add('flip-anim'); setTimeout(() => { if(t.el) t.el.classList.remove('flip-anim'); }, 300); updateFreeState(); justUnlocked = true; AudioSys.playUnlock(); }
+            if (!firstTile) { t.el.classList.add('selected'); firstTile = t; if (!justUnlocked) AudioSys.playClick(true); if (tutorialMode) { let nextTile = (t === tutorialPair[0]) ? tutorialPair[1] : tutorialPair[0]; positionFingerOnTile(nextTile); }
             } else if (firstTile !== t) { 
-                
                 if (firstTile.symbol === t.symbol) { 
-                    isAnimating = true;
-
-                    t.isMatched = true; firstTile.isMatched = true;
-                    t.isTempOpen = false; firstTile.isTempOpen = false;
-                    
-                    t.el.classList.add('selected'); 
-                    if (tutorialMode) {
-                        tutorialMode = false; document.getElementById('tutorial-overlay').style.display = 'none'; document.getElementById('tutorial-finger').style.display = 'none';
-                        tutorialPair[0].el.classList.remove('tutorial-highlight'); tutorialPair[1].el.classList.remove('tutorial-highlight'); SafeStorage.set('mahjong_tutorial_done', 'true');
-                    }
-
+                    isAnimating = true; t.isMatched = true; firstTile.isMatched = true; t.isTempOpen = false; firstTile.isTempOpen = false; t.el.classList.add('selected'); 
+                    if (tutorialMode) { tutorialMode = false; document.getElementById('tutorial-overlay').style.display = 'none'; document.getElementById('tutorial-finger').style.display = 'none'; tutorialPair[0].el.classList.remove('tutorial-highlight'); tutorialPair[1].el.classList.remove('tutorial-highlight'); SafeStorage.set('mahjong_tutorial_done', 'true'); }
                     let now = Date.now(); if (now - lastMatchTime < COMBO_TIME_LIMIT) comboCount++; else comboCount = 1; lastMatchTime = now;
                     AudioSys.playMatch(); matchHistory.push([firstTile, t]);
-                    
-                    let earnedScore = 10 * comboCount; 
-                    let earnedCoins = 10;
-                    totalScore += earnedScore; 
-                    totalCoins += earnedCoins;
-                    SafeStorage.set('mahjong_score', totalScore); 
-                    SafeStorage.set('mahjong_coins', totalCoins); 
-                    updateScoreDisplay();
-                    
-                    showFloatingText(t.el, earnedScore);
-                    spawnSmartBurst(firstTile.el, firstTile.symbol); spawnSmartBurst(t.el, t.symbol);
-                    
+                    let earnedScore = 10 * comboCount; let earnedCoins = 10; totalScore += earnedScore; totalCoins += earnedCoins;
+                    SafeStorage.set('mahjong_score', totalScore); SafeStorage.set('mahjong_coins', totalCoins); updateScoreDisplay();
+                    showFloatingText(t.el, earnedScore); spawnSmartBurst(firstTile.el, firstTile.symbol); spawnSmartBurst(t.el, t.symbol);
                     t.el.classList.add('matched'); firstTile.el.classList.add('matched'); 
-                    
                     let t1 = firstTile, t2 = t;
-                    setTimeout(() => { 
-                        if (t1 && t1.el) t1.el.style.display = 'none'; 
-                        if (t2 && t2.el) t2.el.style.display = 'none'; 
-                        isAnimating = false; 
-                    }, 450);
-
-                    activeTiles = activeTiles.filter(x => x !== t1 && x !== t2); firstTile = null; 
-                    updateFreeState(); updateProgressBar();
-                    
+                    setTimeout(() => { if (t1 && t1.el) t1.el.style.display = 'none'; if (t2 && t2.el) t2.el.style.display = 'none'; isAnimating = false; }, 450);
+                    activeTiles = activeTiles.filter(x => x !== t1 && x !== t2); firstTile = null; updateFreeState(); updateProgressBar();
                     if (activeTiles.length === 0) { levelComplete(); }
                 } else { 
                     if (!justUnlocked) AudioSys.playClick(true);
-                    
-                    if (firstTile && firstTile.el) {
-                        firstTile.el.classList.remove('selected'); 
-                        if (firstTile.isTempOpen) {
-                            firstTile.isHidden = true; firstTile.isTempOpen = false;
-                            let closingEl = firstTile.el; closingEl.classList.add('flip-anim-back'); AudioSys.playLockClose(); 
-                            setTimeout(() => { if (closingEl) { closingEl.classList.remove('flip-anim-back'); closingEl.classList.add('is-hidden'); } }, 300);
-                        }
-                    }
-                    
-                    firstTile = t; 
-                    if (firstTile && firstTile.el) firstTile.el.classList.add('selected');
-                    if (tutorialMode) positionFingerOnTile(tutorialPair[0].isFree ? tutorialPair[0] : tutorialPair[1]);
+                    if (firstTile && firstTile.el) { firstTile.el.classList.remove('selected'); if (firstTile.isTempOpen) { firstTile.isHidden = true; firstTile.isTempOpen = false; let closingEl = firstTile.el; closingEl.classList.add('flip-anim-back'); AudioSys.playLockClose(); setTimeout(() => { if (closingEl) { closingEl.classList.remove('flip-anim-back'); closingEl.classList.add('is-hidden'); } }, 300); } }
+                    firstTile = t; if (firstTile && firstTile.el) firstTile.el.classList.add('selected'); if (tutorialMode) positionFingerOnTile(tutorialPair[0].isFree ? tutorialPair[0] : tutorialPair[1]);
                 } 
             } else { 
-                if (!justUnlocked) {
-                    AudioSys.playClick(false); t.el.classList.remove('selected');
-                    if (t.isTempOpen) {
-                        t.isHidden = true; t.isTempOpen = false;
-                        let closingEl = t.el; closingEl.classList.add('flip-anim-back'); AudioSys.playLockClose(); 
-                        setTimeout(() => { if (closingEl) { closingEl.classList.remove('flip-anim-back'); closingEl.classList.add('is-hidden'); } }, 300);
-                    }
-                    firstTile = null;
-                }
+                if (!justUnlocked) { AudioSys.playClick(false); t.el.classList.remove('selected'); if (t.isTempOpen) { t.isHidden = true; t.isTempOpen = false; let closingEl = t.el; closingEl.classList.add('flip-anim-back'); AudioSys.playLockClose(); setTimeout(() => { if (closingEl) { closingEl.classList.remove('flip-anim-back'); closingEl.classList.add('is-hidden'); } }, 300); } firstTile = null; }
             }
         }
 
-        document.getElementById('btn-shuffle').addEventListener('click', watchAdToShuffle);
-
         function watchAdToShuffle() { 
             if (activeTiles.length === 0 || tutorialMode || window.isLevelCompleting) return;
-            
             let triggerShuffle = () => {
                 try {
                     AudioSys.playShuffle(); 
-                    let currentSymbols = activeTiles.map(t => t.symbol); let pairsPool = [];
-                    let counts = {}; currentSymbols.forEach(s => counts[s] = (counts[s] || 0) + 1);
+                    let currentSymbols = activeTiles.map(t => t.symbol); let pairsPool = []; let counts = {}; currentSymbols.forEach(s => counts[s] = (counts[s] || 0) + 1);
                     for (let s in counts) { for(let i=0; i < Math.floor(counts[s] / 2); i++) pairsPool.push(s); }
                     let hiddenCount = activeTiles.filter(t => t.isHidden || t.isTempOpen).length;
-                    
-                    let currentLayout = activeTiles.map(t => ({x: t.x, y: t.y, z: t.z}));
-                    let attemptMix = 0, preparedTiles = null;
+                    let currentLayout = activeTiles.map(t => ({x: t.x, y: t.y, z: t.z})); let attemptMix = 0, preparedTiles = null;
                     while (!preparedTiles && attemptMix < 100) { attemptMix++; preparedTiles = assignSymbolsSmart(currentLayout, pairsPool, Math.random); }
-                    
                     if (!preparedTiles) { preparedTiles = forceSolvableAssignment(currentLayout, pairsPool); }
-
                     let hideIndices = Array.from({length: currentLayout.length}, (_, i) => i);
                     for (let i = hideIndices.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [hideIndices[i], hideIndices[j]] = [hideIndices[j], hideIndices[i]]; }
                     let toHide = new Set(hideIndices.slice(0, hiddenCount));
-
                     activeTiles.forEach((tile, index) => {
-                        let pt = preparedTiles[index]; tile.x = pt.x; tile.y = pt.y; tile.z = pt.z;
-                        tile.symbol = pt.symbol; tile.el.innerText = pt.symbol; tile.el.classList.remove('selected');
-                        tile.isTempOpen = false; tile.el.classList.remove('flip-anim-back');
-                        tile.el.classList.add('flip-anim'); setTimeout(() => tile.el.classList.remove('flip-anim'), 400);
-                        if (toHide.has(index)) { tile.isHidden = true; tile.el.classList.add('is-hidden'); tile.coverSymbol = coverSymbols[Math.floor(Math.random() * coverSymbols.length)]; tile.el.setAttribute('data-cover', tile.coverSymbol); } 
-                        else { tile.isHidden = false; tile.el.classList.remove('is-hidden'); }
+                        let pt = preparedTiles[index]; tile.x = pt.x; tile.y = pt.y; tile.z = pt.z; tile.symbol = pt.symbol; tile.el.innerText = pt.symbol; tile.el.classList.remove('selected');
+                        tile.isTempOpen = false; tile.el.classList.remove('flip-anim-back'); tile.el.classList.add('flip-anim'); setTimeout(() => tile.el.classList.remove('flip-anim'), 400);
+                        if (toHide.has(index)) { tile.isHidden = true; tile.el.classList.add('is-hidden'); tile.coverSymbol = coverSymbols[Math.floor(Math.random() * coverSymbols.length)]; tile.el.setAttribute('data-cover', tile.coverSymbol); } else { tile.isHidden = false; tile.el.classList.remove('is-hidden'); }
                     });
-                    
                     firstTile = null; updateFreeState(); comboCount = 0; matchHistory = [];
                     let msg = document.getElementById('message'); if(msg) { msg.innerText = t('shuffledNotice'); msg.style.color = '#f1c40f'; }
                     let btn = document.getElementById('btn-shuffle'); if(btn) btn.classList.remove('btn-pulse');
                 } catch(e) { console.error("Ошибка микса:", e); }
             };
-
             if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend();
-            
-            Platform.showRewarded({
-                onStart: () => {},
-                onReward: () => { triggerShuffle(); },
-                onClose: () => { if (AudioSys.enabled || AudioSys.musicEnabled) AudioSys.ctx.resume(); }
-            });
+            Platform.showRewarded({ onStart: () => {}, onReward: () => { triggerShuffle(); }, onClose: () => { if (AudioSys.enabled || AudioSys.musicEnabled) AudioSys.ctx.resume(); } });
         }
 
         function updateBoostersUI() {
             document.querySelectorAll('.booster').forEach(btn => {
                 if (btn.id === 'btn-shuffle') return; 
-                let unlockLvl = parseInt(btn.getAttribute('data-unlock')); 
-                let cost = parseInt(btn.getAttribute('data-cost')); 
-                let lockTag = btn.querySelector('.b-lock');
-                let costTag = btn.querySelector('.b-cost');
-                let bId = btn.id.replace('bst-', ''); 
-
-                if (currentLevel < unlockLvl) {
-                    btn.classList.add('locked'); btn.classList.remove('disabled'); 
-                    if(lockTag) {
-                        lockTag.style.display = 'block';
-                        lockTag.innerText = `${t('levelShort')}${unlockLvl}`;
-                    }
-                    if(costTag) { costTag.innerText = cost; costTag.style.color = '#f1c40f'; }
+                let unlockLvl = parseInt(btn.getAttribute('data-unlock')); let cost = parseInt(btn.getAttribute('data-cost')); 
+                let lockTag = btn.querySelector('.b-lock'); let costTag = btn.querySelector('.b-cost'); let bId = btn.id.replace('bst-', ''); 
+                if (currentLevel < unlockLvl) { btn.classList.add('locked'); btn.classList.remove('disabled'); if(lockTag) { lockTag.style.display = 'block'; lockTag.innerText = `${t('levelShort')}${unlockLvl}`; } if(costTag) { costTag.innerText = cost; costTag.style.color = '#f1c40f'; }
                 } else {
-                    btn.classList.remove('locked'); 
-                    if(lockTag) lockTag.style.display = 'none';
-
-                    let count = freeBoosters[bId] || 0;
-                    let hasFree = count > 0;
-
-                    if (hasFree && costTag) {
-                        costTag.innerText = `${count} ${t('pieces')}`;
-                        costTag.style.color = '#2ecc71'; 
-                    } else if (costTag) {
-                        costTag.innerText = cost;
-                        costTag.style.color = '#f1c40f'; 
-                    }
-
-                    if (!hasFree && totalCoins < cost || activeTiles.length === 0) { 
-                        btn.classList.add('disabled'); 
-                    } else {
-                        btn.classList.remove('disabled');
-                        if (bId === 'undo' && matchHistory.length === 0) btn.classList.add('disabled');
-                        if (bId === 'hint' && getAvailablePairs().length === 0) btn.classList.add('disabled');
-                    }
+                    btn.classList.remove('locked'); if(lockTag) lockTag.style.display = 'none';
+                    let count = freeBoosters[bId] || 0; let hasFree = count > 0;
+                    if (hasFree && costTag) { costTag.innerText = `${count} ${t('pieces')}`; costTag.style.color = '#2ecc71'; } else if (costTag) { costTag.innerText = cost; costTag.style.color = '#f1c40f'; }
+                    if (!hasFree && totalCoins < cost || activeTiles.length === 0) { btn.classList.add('disabled'); } else { btn.classList.remove('disabled'); if (bId === 'undo' && matchHistory.length === 0) btn.classList.add('disabled'); if (bId === 'hint' && getAvailablePairs().length === 0) btn.classList.add('disabled'); }
                 }
             });
         }
@@ -1635,161 +1017,108 @@
         function buyBooster(btnId, cost, action) {
             if (tutorialMode || window.isLevelCompleting || (isGameLocked && btnId !== 'bst-undo' && btnId !== 'bst-bomb' && btnId !== 'bst-light')) return;
             let btn = document.getElementById(btnId);
-            
-            if (btn.classList.contains('locked') || btn.classList.contains('disabled')) { 
-                AudioSys.playError(); 
-                let coinsEl = document.getElementById('hud-coins'); coinsEl.style.color = '#e74c3c'; setTimeout(() => coinsEl.style.color = '#f1c40f', 300); 
-                return; 
-            }
-
-            let bId = btnId.replace('bst-', '');
-            let count = freeBoosters[bId] || 0;
-
-            if (count > 0) {
-                freeBoosters[bId]--;
-                SafeStorage.set('mahjong_free_boosters', JSON.stringify(freeBoosters));
-            } else {
-                totalCoins -= cost; 
-                SafeStorage.set('mahjong_coins', totalCoins); 
-            }
-
-            updateScoreDisplay(); 
-            AudioSys.playBooster(); 
-            action();
+            if (btn.classList.contains('locked') || btn.classList.contains('disabled')) { AudioSys.playError(); let coinsEl = document.getElementById('hud-coins'); coinsEl.style.color = '#e74c3c'; setTimeout(() => coinsEl.style.color = '#f1c40f', 300); return; }
+            let bId = btnId.replace('bst-', ''); let count = freeBoosters[bId] || 0;
+            if (count > 0) { freeBoosters[bId]--; SafeStorage.set('mahjong_free_boosters', JSON.stringify(freeBoosters)); } else { totalCoins -= cost; SafeStorage.set('mahjong_coins', totalCoins); }
+            updateScoreDisplay(); AudioSys.playBooster(); action();
         }
 
-        function getAvailablePairs() {
-            let freeTiles = activeTiles.filter(t => t.isFree && !t.isHidden && !t.isMatched); let pairs = [];
-            for (let i = 0; i < freeTiles.length; i++) { for (let j = i + 1; j < freeTiles.length; j++) { if (freeTiles[i].symbol === freeTiles[j].symbol) pairs.push([freeTiles[i], freeTiles[j]]); } } return pairs;
-        }
+        function getAvailablePairs() { let freeTiles = activeTiles.filter(t => t.isFree && !t.isHidden && !t.isMatched); let pairs = []; for (let i = 0; i < freeTiles.length; i++) { for (let j = i + 1; j < freeTiles.length; j++) { if (freeTiles[i].symbol === freeTiles[j].symbol) pairs.push([freeTiles[i], freeTiles[j]]); } } return pairs; }
 
-        document.getElementById('bst-hint').addEventListener('click', () => {
-            buyBooster('bst-hint', 50, () => {
-                let pairs = getAvailablePairs();
-                if (pairs.length > 0) { let pair = pairs[0]; pair[0].el.classList.add('hinted'); pair[1].el.classList.add('hinted'); setTimeout(() => { pair[0].el.classList.remove('hinted'); pair[1].el.classList.remove('hinted'); }, 3000); }
-            });
-        });
-
-        document.getElementById('bst-undo').addEventListener('click', () => {
-            buyBooster('bst-undo', 100, () => {
-                if (matchHistory.length === 0) return;
-                let pair = matchHistory.pop(); 
-                pair[0].isMatched = false; pair[1].isMatched = false;
-                pair[0].isTempOpen = false; pair[1].isTempOpen = false;
-                pair[0].el.classList.remove('matched', 'selected'); pair[1].el.classList.remove('matched', 'selected');
-                pair[0].el.style.display = 'flex'; pair[1].el.style.display = 'flex'; 
-                activeTiles.push(pair[0], pair[1]); comboCount = 0; updateFreeState(); updateProgressBar();
-            });
-        });
-
-        document.getElementById('bst-bomb').addEventListener('click', () => {
-            buyBooster('bst-bomb', 300, () => {
-                let pairs = getAvailablePairs(); let destroyed = 0;
-                pairs.forEach(pair => {
-                    if (destroyed >= 2) return;
-                    if (activeTiles.includes(pair[0]) && activeTiles.includes(pair[1])) {
-                        pair[0].isMatched = true; pair[1].isMatched = true;
-                        spawnSmartBurst(pair[0].el, pair[0].symbol); spawnSmartBurst(pair[1].el, pair[1].symbol);
-                        pair[0].el.classList.add('matched'); pair[1].el.classList.add('matched');
-                        let t1 = pair[0], t2 = pair[1];
-                        setTimeout(() => { if(t1.el) t1.el.style.display = 'none'; if(t2.el) t2.el.style.display = 'none'; }, 450);
-                        activeTiles = activeTiles.filter(x => x !== pair[0] && x !== pair[1]); destroyed++;
-                    }
-                });
-                matchHistory = []; updateFreeState(); updateProgressBar();
-                if (activeTiles.length === 0) { levelComplete(); }
-            });
-        });
-
-        document.getElementById('bst-light').addEventListener('click', () => {
-            buyBooster('bst-light', 600, () => {
-                if (activeTiles.length === 0) return;
-                let randomTile = activeTiles[Math.floor(Math.random() * activeTiles.length)];
-                let targets = activeTiles.filter(t => t.symbol === randomTile.symbol);
-                targets.forEach(t => { 
-                    t.isMatched = true;
-                    spawnSmartBurst(t.el, t.symbol); 
-                    t.el.classList.add('matched'); 
-                    setTimeout(() => { if(t.el) t.el.style.display = 'none'; }, 450);
-                });
-                activeTiles = activeTiles.filter(t => t.symbol !== randomTile.symbol); matchHistory = []; updateFreeState(); updateProgressBar();
-                if (activeTiles.length === 0) { levelComplete(); }
-            });
-        });
-
-        const wheelModal = document.getElementById('wheel-modal'); const wheelSpinner = document.getElementById('wheel-spinner'); const btnOpenWheel = document.getElementById('btn-open-wheel'); const btnSpin = document.getElementById('btn-spin'); const btnCloseWheel = document.getElementById('btn-close-wheel');
-        
-        const wheelPrizes = [ 
-            { type: 'coins', text: "500 💰", val: 500, color: "#3498db" }, 
-            { type: 'booster', id: 'hint', text: "🔍", name: { ru: "Поиск", en: "Hint", tr: "İpucu", es: "Pista" }, color: "#9b59b6" }, 
-            { type: 'coins', text: "1500 💰", val: 1500, color: "#e67e22" }, 
-            { type: 'booster', id: 'undo', text: "↩️", name: { ru: "Возврат", en: "Undo", tr: "Geri Al", es: "Deshacer" }, color: "#e74c3c" }, 
-            { type: 'coins', text: "3000 💰", val: 3000, color: "#f1c40f" }, 
-            { type: 'booster', id: 'bomb', text: "💣", name: { ru: "Бомбочка", en: "Bomb", tr: "Bomba", es: "Bomba" }, color: "#2ecc71" }, 
-            { type: 'booster', id: 'light', text: "⚡", name: { ru: "Молния", en: "Lightning", tr: "Yıldırım", es: "Rayo" }, color: "#1abc9c" } 
-        ];
-        
-        let sliceAngle = 360 / wheelPrizes.length;
-        
         function renderWheel() {
-            wheelSpinner.innerHTML = '';
-            let conicGradient = [];
+            let wheelSpinner = document.getElementById('wheel-spinner'); wheelSpinner.innerHTML = ''; let conicGradient = [];
             wheelPrizes.forEach((prize, i) => {
                 let start = i * sliceAngle; let end = (i + 1) * sliceAngle; conicGradient.push(`${prize.color} ${start}deg ${end}deg`);
-                let container = document.createElement('div'); container.className = 'wheel-text-container';
-                container.style.transform = `rotate(${start + sliceAngle/2}deg)`;
+                let container = document.createElement('div'); container.className = 'wheel-text-container'; container.style.transform = `rotate(${start + sliceAngle/2}deg)`;
                 let textEl = document.createElement('div'); textEl.className = 'wheel-text'; textEl.innerText = prize.text; 
-                
-                if (prize.type === 'booster') {
-                    textEl.style.fontSize = '28px';
-                    textEl.style.marginTop = '20px';
-                }
-                
+                if (prize.type === 'booster') { textEl.style.fontSize = '28px'; textEl.style.marginTop = '20px'; }
                 container.appendChild(textEl); wheelSpinner.appendChild(container);
             });
             wheelSpinner.style.background = `conic-gradient(${conicGradient.join(', ')})`;
         }
-        renderWheel();
-
-        let isSpinning = false;
-        btnOpenWheel.addEventListener('click', () => { AudioSys.init(); document.getElementById('shop-modal').style.display = 'none'; wheelModal.style.display = 'flex'; checkWheelTimer(); });
-        btnCloseWheel.addEventListener('click', () => { if(!isSpinning) { wheelModal.style.display = 'none'; document.getElementById('shop-modal').style.display = 'flex'; }});
-
+        
         function checkWheelTimer() {
-            let lastSpin = SafeStorage.get('mahjong_last_spin');
+            let btnSpin = document.getElementById('btn-spin'); let lastSpin = SafeStorage.get('mahjong_last_spin');
             if (lastSpin && Date.now() - parseInt(lastSpin) < 86400000) {
                 let timeLeft = 86400000 - (Date.now() - parseInt(lastSpin)); let hours = Math.floor(timeLeft / (1000 * 60 * 60)); let mins = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
                 btnSpin.innerText = t('waitHours')(hours, mins); btnSpin.style.background = "gray"; btnSpin.style.boxShadow = "none"; btnSpin.disabled = true;
             } else { btnSpin.innerText = t('spin'); btnSpin.style.background = "linear-gradient(180deg, #ffdf00 0%, #f1c40f 50%, #d4ac0d 100%)"; btnSpin.style.boxShadow = "0 8px 0 #9c7e07, 0 15px 20px rgba(0,0,0,0.7), inset 0 2px 5px rgba(255,255,255,0.8)"; btnSpin.disabled = false; }
         }
 
-        btnSpin.addEventListener('click', () => {
-            if(isSpinning || btnSpin.disabled) return;
-            isSpinning = true; btnSpin.innerText = t('spinning'); AudioSys.playShuffle();
+        // --- 4. ПРИВЯЗКА СОБЫТИЙ UI ---
+        document.addEventListener("DOMContentLoaded", () => {
+            applyEquippedBg();
+            let savedMusic = SafeStorage.get('mahjong_music'); if (savedMusic !== null) AudioSys.musicEnabled = (savedMusic === 'true');
+            let savedSound = SafeStorage.get('mahjong_sound'); if (savedSound !== null) AudioSys.enabled = (savedSound === 'true');
+        });
+
+        document.addEventListener("visibilitychange", () => { if (document.hidden) { if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend(); } else { if (AudioSys.ctx && AudioSys.ctx.state === 'suspended' && (AudioSys.enabled || AudioSys.musicEnabled)) AudioSys.ctx.resume(); } });
+        window.addEventListener("blur", () => { if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend(); });
+        window.addEventListener("focus", () => { if (AudioSys.ctx && AudioSys.ctx.state === 'suspended' && (AudioSys.enabled || AudioSys.musicEnabled)) AudioSys.ctx.resume(); });
+
+        document.getElementById('btn-play').addEventListener('click', () => { AudioSys.init(); Platform.gameplayStart(); document.getElementById('main-menu').style.display = 'none'; document.getElementById('game-screen').style.display = 'flex'; initGame(); });
+        document.getElementById('btn-prev-level').addEventListener('click', () => { if(currentLevel > 1) { currentLevel--; SafeStorage.set('mahjong_level', currentLevel); updateMenuLevelText(); updateBoostersUI(); }});
+        document.getElementById('btn-next-level').addEventListener('click', () => { if(currentLevel < unlockedLevel) { currentLevel++; SafeStorage.set('mahjong_level', currentLevel); updateMenuLevelText(); updateBoostersUI(); }});
+        document.getElementById('btn-hud-prev').addEventListener('click', () => { if(currentLevel > 1) { currentLevel--; SafeStorage.set('mahjong_level', currentLevel); initGame(); }});
+        document.getElementById('btn-hud-next').addEventListener('click', () => { if(currentLevel < unlockedLevel) { currentLevel++; SafeStorage.set('mahjong_level', currentLevel); initGame(); }});
+        document.getElementById('btn-reset').addEventListener('click', () => { if (confirm(t('resetConfirm'))) { currentLevel = 1; unlockedLevel = 1; totalScore = 0; totalCoins = 0; freeBoosters = {hint:0, undo:0, bomb:0, light:0}; SafeStorage.set('mahjong_level', 1); SafeStorage.set('mahjong_unlocked_level', 1); SafeStorage.set('mahjong_score', 0); SafeStorage.set('mahjong_coins', 0); SafeStorage.remove('mahjong_free_boosters'); SafeStorage.remove('mahjong_tutorial_done'); updateMenuLevelText(); updateScoreDisplay(); updateBoostersUI(); } });
+        document.getElementById('btn-rules').addEventListener('click', () => { AudioSys.init(); document.getElementById('rules-modal').style.display = 'flex'; });
+        document.getElementById('btn-close-rules').addEventListener('click', () => document.getElementById('rules-modal').style.display = 'none');
+        document.getElementById('btn-menu').addEventListener('click', () => { Platform.gameplayStop(); document.getElementById('game-screen').style.display = 'none'; document.getElementById('main-menu').style.display = 'flex'; updateMenuLevelText(); });
+        document.getElementById('btn-modal-shuffle').addEventListener('click', () => { document.getElementById('no-moves-modal').style.display = 'none'; watchAdToShuffle(); });
+        document.getElementById('btn-close-no-moves').addEventListener('click', () => { document.getElementById('no-moves-modal').style.display = 'none'; });
+        document.getElementById('btn-leaderboard').addEventListener('click', openLeaderboard);
+        document.getElementById('btn-close-leaderboard').addEventListener('click', () => { document.getElementById('leaderboard-modal').style.display = 'none'; });
+        document.getElementById('btn-settings').addEventListener('click', () => { AudioSys.init(); document.getElementById('settings-modal').style.display = 'flex'; });
+        document.getElementById('btn-game-settings').addEventListener('click', () => { AudioSys.init(); document.getElementById('settings-modal').style.display = 'flex'; });
+        document.getElementById('btn-close-settings').addEventListener('click', () => { document.getElementById('settings-modal').style.display = 'none'; });
+        document.getElementById('btn-settings-sound').addEventListener('click', () => { AudioSys.init(); AudioSys.toggleSound(); });
+        document.getElementById('btn-settings-music').addEventListener('click', () => { AudioSys.init(); AudioSys.toggleMusic(); });
+        document.getElementById('btn-settings-lang').addEventListener('click', () => { AudioSys.init(); cycleLanguage(); });
+        document.getElementById('btn-open-shop').addEventListener('click', () => { AudioSys.init(); renderShop(); document.getElementById('shop-modal').style.display = 'flex'; });
+        document.getElementById('btn-close-shop').addEventListener('click', () => { document.getElementById('shop-modal').style.display = 'none'; });
+        
+        let isSpinningLocal = false;
+        document.getElementById('btn-open-wheel').addEventListener('click', () => { AudioSys.init(); document.getElementById('shop-modal').style.display = 'none'; document.getElementById('wheel-modal').style.display = 'flex'; checkWheelTimer(); });
+        document.getElementById('btn-close-wheel').addEventListener('click', () => { if(!isSpinningLocal) { document.getElementById('wheel-modal').style.display = 'none'; document.getElementById('shop-modal').style.display = 'flex'; }});
+        document.getElementById('btn-spin').addEventListener('click', () => {
+            let btnSpin = document.getElementById('btn-spin'); let wheelSpinner = document.getElementById('wheel-spinner');
+            if(isSpinningLocal || btnSpin.disabled) return;
+            isSpinningLocal = true; btnSpin.innerText = t('spinning'); AudioSys.playShuffle();
             let prizeIndex = Math.floor(Math.random() * wheelPrizes.length); let targetSliceAngle = (prizeIndex * sliceAngle) + (sliceAngle / 2); let rotateAngle = 360 * 5 + (360 - targetSliceAngle); 
             wheelSpinner.style.transform = `rotate(${rotateAngle}deg)`;
             let ticks = 0; let tickInterval = setInterval(() => { AudioSys.playWheelTick(); ticks++; if(ticks > 25) clearInterval(tickInterval); }, 150);
-            
             setTimeout(() => {
-                AudioSys.playWin(); 
-                let wonPrize = wheelPrizes[prizeIndex]; 
-                
-                if (wonPrize.type === 'coins') {
-                    totalCoins += wonPrize.val; 
-                    SafeStorage.set('mahjong_coins', totalCoins); 
-                    alert(`${t('congrats')} ${t('youWon')(wonPrize.text)}`);
-                } else if (wonPrize.type === 'booster') {
-                    freeBoosters[wonPrize.id] = (freeBoosters[wonPrize.id] || 0) + 1;
-                    SafeStorage.set('mahjong_free_boosters', JSON.stringify(freeBoosters));
-                    let bName = wonPrize.name[currentLang] || wonPrize.name['en'] || wonPrize.name['ru'];
-                    alert(`${t('congrats')}\n${t('boosterWon')(wonPrize.text, bName)}`);
-                }
-
-                SafeStorage.set('mahjong_last_spin', Date.now().toString());
-                updateScoreDisplay(); 
-                
-                isSpinning = false; wheelSpinner.style.transition = 'none'; wheelSpinner.style.transform = `rotate(${360 - targetSliceAngle}deg)`; setTimeout(() => wheelSpinner.style.transition = 'transform 4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', 50); checkWheelTimer();
+                AudioSys.playWin(); let wonPrize = wheelPrizes[prizeIndex]; 
+                if (wonPrize.type === 'coins') { totalCoins += wonPrize.val; SafeStorage.set('mahjong_coins', totalCoins); alert(`${t('congrats')} ${t('youWon')(wonPrize.text)}`); } 
+                else if (wonPrize.type === 'booster') { freeBoosters[wonPrize.id] = (freeBoosters[wonPrize.id] || 0) + 1; SafeStorage.set('mahjong_free_boosters', JSON.stringify(freeBoosters)); let bName = wonPrize.name[currentLang] || wonPrize.name['en'] || wonPrize.name['ru']; alert(`${t('congrats')}\n${t('boosterWon')(wonPrize.text, bName)}`); }
+                SafeStorage.set('mahjong_last_spin', Date.now().toString()); updateScoreDisplay(); 
+                isSpinningLocal = false; wheelSpinner.style.transition = 'none'; wheelSpinner.style.transform = `rotate(${360 - targetSliceAngle}deg)`; setTimeout(() => wheelSpinner.style.transition = 'transform 4s cubic-bezier(0.175, 0.885, 0.32, 1.275)', 50); checkWheelTimer();
             }, 4000);
+        });
+
+        document.getElementById('btn-shuffle').addEventListener('click', watchAdToShuffle);
+        document.getElementById('bst-hint').addEventListener('click', () => { buyBooster('bst-hint', 50, () => { let pairs = getAvailablePairs(); if (pairs.length > 0) { let pair = pairs[0]; pair[0].el.classList.add('hinted'); pair[1].el.classList.add('hinted'); setTimeout(() => { pair[0].el.classList.remove('hinted'); pair[1].el.classList.remove('hinted'); }, 3000); } }); });
+        document.getElementById('bst-undo').addEventListener('click', () => { buyBooster('bst-undo', 100, () => { if (matchHistory.length === 0) return; let pair = matchHistory.pop(); pair[0].isMatched = false; pair[1].isMatched = false; pair[0].isTempOpen = false; pair[1].isTempOpen = false; pair[0].el.classList.remove('matched', 'selected'); pair[1].el.classList.remove('matched', 'selected'); pair[0].el.style.display = 'flex'; pair[1].el.style.display = 'flex'; activeTiles.push(pair[0], pair[1]); comboCount = 0; updateFreeState(); updateProgressBar(); }); });
+        document.getElementById('bst-bomb').addEventListener('click', () => { buyBooster('bst-bomb', 300, () => { let pairs = getAvailablePairs(); let destroyed = 0; pairs.forEach(pair => { if (destroyed >= 2) return; if (activeTiles.includes(pair[0]) && activeTiles.includes(pair[1])) { pair[0].isMatched = true; pair[1].isMatched = true; spawnSmartBurst(pair[0].el, pair[0].symbol); spawnSmartBurst(pair[1].el, pair[1].symbol); pair[0].el.classList.add('matched'); pair[1].el.classList.add('matched'); let t1 = pair[0], t2 = pair[1]; setTimeout(() => { if(t1.el) t1.el.style.display = 'none'; if(t2.el) t2.el.style.display = 'none'; }, 450); activeTiles = activeTiles.filter(x => x !== pair[0] && x !== pair[1]); destroyed++; } }); matchHistory = []; updateFreeState(); updateProgressBar(); if (activeTiles.length === 0) { levelComplete(); } }); });
+        document.getElementById('bst-light').addEventListener('click', () => { buyBooster('bst-light', 600, () => { if (activeTiles.length === 0) return; let randomTile = activeTiles[Math.floor(Math.random() * activeTiles.length)]; let targets = activeTiles.filter(t => t.symbol === randomTile.symbol); targets.forEach(t => { t.isMatched = true; spawnSmartBurst(t.el, t.symbol); t.el.classList.add('matched'); setTimeout(() => { if(t.el) t.el.style.display = 'none'; }, 450); }); activeTiles = activeTiles.filter(t => t.symbol !== randomTile.symbol); matchHistory = []; updateFreeState(); updateProgressBar(); if (activeTiles.length === 0) { levelComplete(); } }); });
+
+        // --- 5. ТОЧКА ВХОДА (ПОЛНАЯ ЗАГРУЗКА И СТАРТ) ---
+        // Инициализируем базовые состояния ДО подгрузки облака
+        let savedLvl = SafeStorage.get('mahjong_level'); if (savedLvl && !isNaN(parseInt(savedLvl))) currentLevel = parseInt(savedLvl); else currentLevel = 1;
+        let savedUnLvl = SafeStorage.get('mahjong_unlocked_level'); if (savedUnLvl && !isNaN(parseInt(savedUnLvl))) unlockedLevel = parseInt(savedUnLvl); else unlockedLevel = currentLevel;
+        let savedScore = SafeStorage.get('mahjong_score'); if (savedScore && !isNaN(parseInt(savedScore))) totalScore = parseInt(savedScore); else totalScore = 0;
+        let savedCoins = SafeStorage.get('mahjong_coins'); if (savedCoins && !isNaN(parseInt(savedCoins))) totalCoins = parseInt(savedCoins); else totalCoins = 0;
+        
+        try { let ml = SafeStorage.get('mahjong_leaderboard'); if (ml) mockLeaderboard = JSON.parse(ml); else throw new Error("no lb"); } catch(e) { for(let i=0; i<49; i++) { mockLeaderboard.push({ name: botNames[Math.floor(Math.random() * botNames.length)] + Math.floor(Math.random() * 999), score: Math.floor(Math.random() * 25000) + 500 }); } SafeStorage.set('mahjong_leaderboard', JSON.stringify(mockLeaderboard)); }
+        
+        createParticles();
+        renderWheel();
+
+        // Запуск платформы - перенесен в самый конец файла для гарантии, 
+        // что все переменные (TDZ) и функции уже существуют в памяти.
+        Platform.init((sdkLang) => {
+            initGameLanguageAndUI(sdkLang);
         });
     </script>
 </body>
