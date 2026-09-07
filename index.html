@@ -6,11 +6,11 @@
     <meta name="color-scheme" content="light only">
     <title>Stickers Mahjong</title>
     
-    <!-- === SDK ПЛАТФОРМ === -->
-    <!-- ВНИМАНИЕ: При загрузке на Яндекс оставьте оба скрипта (или удалите строчку CrazyGames). -->
-    <!-- При загрузке на CrazyGames удалять ничего не нужно, игра сама выберет нужный SDK. -->
+    <!-- === УНИВЕРСАЛЬНЫЕ SDK ПЛАТФОРМ === -->
+    <!-- Игра сама поймет, где она запущена, и активирует нужный скрипт -->
     <script src="https://yandex.ru/games/sdk/v2"></script>
     <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+    <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
     <style>
@@ -425,21 +425,36 @@
             return (I18N[currentLang] && I18N[currentLang][key]) || (I18N['ru'][key]) || key;
         }
 
-        // --- 🔒 УНИВЕРСАЛЬНЫЙ АДАПТЕР ПЛАТФОРМ (Yandex + CrazyGames) ---
+        // --- 🔒 УНИВЕРСАЛЬНЫЙ АДАПТЕР ПЛАТФОРМ (Yandex + CrazyGames + VK Bridge) ---
         const Platform = {
             name: 'local',
             sdk: null,
             init: async function(langCallback) {
-                // 1. Инициализация CrazyGames SDK
+                // 1. Платформа: ВКонтакте (VK Play / Mini Apps)
+                if (typeof vkBridge !== 'undefined' && window.location.search.includes('vk_')) {
+                    try {
+                        await vkBridge.send("VKWebAppInit");
+                        this.name = 'vk';
+                        this.sdk = vkBridge;
+                        console.log("VK SDK activated");
+                        
+                        let urlParams = new URLSearchParams(window.location.search);
+                        let vkLang = urlParams.get('language') || urlParams.get('lang');
+                        langCallback(vkLang);
+                        return;
+                    } catch(e) { console.warn("VK init failed", e); }
+                }
+
+                // 2. Платформа: CrazyGames
                 if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
                     this.name = 'crazygames';
                     this.sdk = window.CrazyGames.SDK;
                     console.log("CrazyGames SDK activated");
-                    langCallback(null); // Язык определится из браузера
+                    langCallback(null);
                     return;
                 }
                 
-                // 2. Инициализация Yandex SDK
+                // 3. Платформа: Яндекс Игры
                 if (typeof YaGames !== 'undefined') {
                     try {
                         this.sdk = await YaGames.init();
@@ -462,7 +477,7 @@
                     } catch(e) { console.warn("Yandex init error", e); }
                 }
                 
-                // 3. Локальный запуск (если запущен просто HTML файл)
+                // 4. Локальный запуск (тестовый)
                 console.log("Local/Fallback environment");
                 langCallback(null);
             },
@@ -488,8 +503,20 @@
                         adFinished: () => { callbacks.onReward(); callbacks.onClose(); },
                         adError: (err) => { console.warn("CG Ad Error", err); if(callbacks.onError) callbacks.onError(); callbacks.onClose(); }
                     });
+                } else if (this.name === 'vk') {
+                    if(callbacks.onStart) callbacks.onStart();
+                    this.sdk.send("VKWebAppShowNativeAds", {ad_format:"reward"})
+                        .then(data => {
+                            if (data.result) { if(callbacks.onReward) callbacks.onReward(); }
+                            else { if(callbacks.onError) callbacks.onError(); }
+                            if(callbacks.onClose) callbacks.onClose();
+                        })
+                        .catch(err => {
+                            console.warn("VK Ad Err", err);
+                            if(callbacks.onError) callbacks.onError();
+                            if(callbacks.onClose) callbacks.onClose();
+                        });
                 } else {
-                    // Имитация просмотра рекламы для локальных тестов
                     const adScreen = document.getElementById('ad-screen');
                     if(adScreen) adScreen.style.display = 'flex';
                     if(callbacks.onStart) callbacks.onStart();
@@ -1066,7 +1093,7 @@
         
         document.getElementById('btn-play').addEventListener('click', () => { 
             AudioSys.init(); 
-            Platform.gameplayStart(); // Уведомляем CrazyGames о старте уровня
+            Platform.gameplayStart();
             document.getElementById('main-menu').style.display = 'none'; 
             document.getElementById('game-screen').style.display = 'flex'; 
             initGame(); 
@@ -1110,7 +1137,7 @@
         document.getElementById('btn-close-rules').addEventListener('click', () => document.getElementById('rules-modal').style.display = 'none');
         
         document.getElementById('btn-menu').addEventListener('click', () => { 
-            Platform.gameplayStop(); // Уведомляем CrazyGames о выходе в меню
+            Platform.gameplayStop();
             document.getElementById('game-screen').style.display = 'none'; 
             document.getElementById('main-menu').style.display = 'flex'; 
             updateMenuLevelText(); 
@@ -1277,7 +1304,7 @@
             if (window.isLevelCompleting) return; 
             window.isLevelCompleting = true; 
             
-            Platform.gameplayStop(); // Уведомляем платформу о конце уровня
+            Platform.gameplayStop();
 
             try { AudioSys.playWin(); } catch(e){}
             
@@ -1554,8 +1581,8 @@
                 } catch(e) { console.error("Ошибка микса:", e); }
             };
 
-            // Вызов рекламы через Адаптер Платформ
             if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend();
+            
             Platform.showRewarded({
                 onStart: () => {},
                 onReward: () => { triggerShuffle(); },
