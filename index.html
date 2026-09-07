@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="color-scheme" content="light only">
     <title>Stickers Mahjong</title>
-    <!-- ПОДКЛЮЧЕНИЕ YANDEX SDK -->
+    
+    <!-- === SDK ПЛАТФОРМ === -->
+    <!-- ВНИМАНИЕ: При загрузке на Яндекс оставьте оба скрипта (или удалите строчку CrazyGames). -->
+    <!-- При загрузке на CrazyGames удалять ничего не нужно, игра сама выберет нужный SDK. -->
     <script src="https://yandex.ru/games/sdk/v2"></script>
+    <script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -193,7 +198,6 @@
     <div id="tutorial-overlay"></div>
     <div id="tutorial-finger">👆</div>
 
-    <!-- ОКНО ПОБЕДЫ -->
     <div id="level-complete-overlay">
         <div id="level-complete-glow"></div>
         <h2 id="level-complete-praise">ВЕЛИКОЛЕПНО!</h2>
@@ -207,7 +211,6 @@
         <button id="btn-close-leaderboard" class="btn-massive" style="font-size: 20px; padding: 10px 30px;">ЗАКРЫТЬ</button>
     </div>
 
-    <!-- МАГАЗИН И БОНУСЫ -->
     <div id="shop-modal">
         <h2 id="txt-shop-title">🛒 МАГАЗИН</h2>
         <div id="shop-coins-header">Ваши монеты: 💰 0</div>
@@ -230,7 +233,6 @@
         <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; width: 250px;">
             <button id="btn-settings-sound" class="btn-wheel" style="margin:0; font-family: sans-serif;">🔊 Звуки: ВКЛ</button>
             <button id="btn-settings-music" class="btn-wheel" style="margin:0; font-family: sans-serif; background: linear-gradient(180deg, #2ecc71 0%, #27ae60 100%); box-shadow: 0 6px 0 #1e8449, 0 10px 15px rgba(0,0,0,0.7); border-color: #2ecc71;">🍃 Фон: ВКЛ</button>
-            <!-- ПЕРЕКЛЮЧАТЕЛЬ ЯЗЫКА -->
             <button id="btn-settings-lang" class="btn-wheel" style="margin:0; font-family: sans-serif; background: linear-gradient(180deg, #3498db 0%, #2980b9 100%); box-shadow: 0 6px 0 #1c5982, 0 10px 15px rgba(0,0,0,0.7); border-color: #3498db;">🌐 Язык: Русский</button>
         </div>
         <button id="btn-close-settings" class="btn-massive" style="font-size: 20px; padding: 10px 30px;">ЗАКРЫТЬ</button>
@@ -251,7 +253,6 @@
         
         <button id="btn-play" class="btn-massive">▶ ИГРАТЬ</button>
         
-        <!-- КНОПКИ В МЕНЮ -->
         <div style="display: flex; flex-direction: column; gap: 10px; z-index: 2; margin-bottom: 10px; width: 220px;">
             <button id="btn-open-shop" class="btn-menu-small" style="margin-bottom: 0; background: rgba(155, 89, 182, 0.3); color: #e0aaff; border-color: #9b59b6;">🛒 Магазин & Бонусы</button>
             <button id="btn-leaderboard" class="btn-menu-small" style="margin-bottom: 0; color: #f1c40f; border-color: #f1c40f;">🏆 Рейтинг</button>
@@ -344,231 +345,75 @@
         // --- 🌐 МУЛЬТИЯЗЫЧНОСТЬ (I18N) ---
         const I18N = {
             ru: {
-                langName: "Русский",
-                play: "▶ ИГРАТЬ",
-                shopBtn: "🛒 Магазин & Бонусы",
-                leaderboard: "🏆 Рейтинг",
-                settings: "⚙️ Настройки",
-                howToPlay: "📖 Как играть?",
-                resetProgress: "Сбросить весь прогресс",
-                resetConfirm: "Начать с 1 уровня? Весь прогресс будет удален.",
-                level: "УРОВЕНЬ",
-                levelShort: "Ур.",
-                chapter: "ГЛАВА",
-                soundOn: "🔊 Звуки: ВКЛ",
-                soundOff: "🔇 Звуки: ВЫКЛ",
-                musicOn: "🍃 Фон: ВКЛ",
-                musicOff: "🔇 Фон: ВЫКЛ",
-                close: "ЗАКРЫТЬ",
-                understood: "ПОНЯТНО",
-                menuHome: "🏠 Меню",
-                yourScore: "🏆 Очки: ",
-                yourCoins: "Ваши монеты: 💰 ",
-                wheelTitle: "Колесо Фортуны",
-                wheelDaily: "🎡 Колесо Фортуны",
-                spin: "КРУТИТЬ",
-                spinning: "ВРАЩЕНИЕ...",
-                waitHours: (h, m) => `ОЖИДАНИЕ (${h}ч ${m}м)`,
-                backToShop: "Назад в магазин",
-                congrats: "ПОЗДРАВЛЯЕМ!",
-                youWon: (item) => `Вы выиграли: ${item}`,
-                boosterWon: (icon, name) => `Вы выиграли бесплатный бустер:\n${icon} ${name}`,
-                noMovesTitle: "НЕТ ХОДОВ!",
-                noMovesDesc: "На столе больше нет доступных пар. Перемешайте фишки или воспользуйтесь бустером.",
-                noMovesNotice: "НЕТ ХОДОВ! Нажмите Микс ➔",
-                shuffledNotice: "Фишки перемешаны! ✨",
-                useBoosterBtn: "Я использую бустер",
-                mix: "МИКС",
-                levelComplete: "УРОВЕНЬ ПРОЙДЕН",
-                yourRank: (rank, score) => `🏆 Ваше место: #${rank} (Очки: ${score})`,
-                adTitle: "Рекламная пауза",
-                adDesc: "Подождите...",
-                shopTitle: "🛒 МАГАЗИН",
-                shopBgTitle: "🎨 Красивые Фоны",
-                shopSndTitle: "🎵 Звуки Природы",
-                equipped: "ВЫБРАНО",
-                equip: "Выбрать",
-                pieces: "шт.",
-                rulesTitle: "Как играть?",
-                rules1: "Находите пары одинаковых фишек, чтобы очистить поле.",
-                rules2: "Фишка активна, если на ней <b>ничего не лежит</b>, и она <b>свободна слева ИЛИ справа</b>.",
+                langName: "Русский", play: "▶ ИГРАТЬ", shopBtn: "🛒 Магазин & Бонусы", leaderboard: "🏆 Рейтинг", settings: "⚙️ Настройки",
+                howToPlay: "📖 Как играть?", resetProgress: "Сбросить весь прогресс", resetConfirm: "Начать с 1 уровня? Весь прогресс будет удален.",
+                level: "УРОВЕНЬ", levelShort: "Ур.", chapter: "ГЛАВА", soundOn: "🔊 Звуки: ВКЛ", soundOff: "🔇 Звуки: ВЫКЛ",
+                musicOn: "🍃 Фон: ВКЛ", musicOff: "🔇 Фон: ВЫКЛ", close: "ЗАКРЫТЬ", understood: "ПОНЯТНО", menuHome: "🏠 Меню",
+                yourScore: "🏆 Очки: ", yourCoins: "Ваши монеты: 💰 ", wheelTitle: "Колесо Фортуны", wheelDaily: "🎡 Колесо Фортуны",
+                spin: "КРУТИТЬ", spinning: "ВРАЩЕНИЕ...", waitHours: (h, m) => `ОЖИДАНИЕ (${h}ч ${m}м)`, backToShop: "Назад в магазин",
+                congrats: "ПОЗДРАВЛЯЕМ!", youWon: (item) => `Вы выиграли: ${item}`, boosterWon: (icon, name) => `Вы выиграли бесплатный бустер:\n${icon} ${name}`,
+                noMovesTitle: "НЕТ ХОДОВ!", noMovesDesc: "На столе больше нет доступных пар. Перемешайте фишки или воспользуйтесь бустером.",
+                noMovesNotice: "НЕТ ХОДОВ! Нажмите Микс ➔", shuffledNotice: "Фишки перемешаны! ✨", useBoosterBtn: "Я использую бустер",
+                mix: "МИКС", levelComplete: "УРОВЕНЬ ПРОЙДЕН", yourRank: (rank, score) => `🏆 Ваше место: #${rank} (Очки: ${score})`,
+                adTitle: "Рекламная пауза", adDesc: "Подождите...", shopTitle: "🛒 МАГАЗИН", shopBgTitle: "🎨 Красивые Фоны", shopSndTitle: "🎵 Звуки Природы",
+                equipped: "ВЫБРАНО", equip: "Выбрать", pieces: "шт.", rulesTitle: "Как играть?",
+                rules1: "Находите пары одинаковых фишек, чтобы очистить поле.", rules2: "Фишка активна, если на ней <b>ничего не лежит</b>, и она <b>свободна слева ИЛИ справа</b>.",
                 rules3: "Замки: если вы открыли фишку с замком, но затем кликнули на другую, первая <b>закроется обратно</b>! Тренируйте память.",
-                notEnoughCoins: "Недостаточно монет! Крутите Колесо Фортуны.",
-                diffEasy: "🟢 Легко",
-                diffMedium: "🟡 Средне",
-                diffHard: "🟠 Сложно",
-                diffExpert: "🔴 ЭКСПЕРТ",
+                notEnoughCoins: "Недостаточно монет! Крутите Колесо Фортуны.", diffEasy: "🟢 Легко", diffMedium: "🟡 Средне", diffHard: "🟠 Сложно", diffExpert: "🔴 ЭКСПЕРТ",
                 praises: ["ВЕЛИКОЛЕПНО!", "БЛЕСТЯЩЕ!", "ГЕНИАЛЬНО!", "ИДЕАЛЬНО!", "ПРЕВОСХОДНО!", "МАСТЕРСКИ!", "ПОТРЯСАЮЩЕ!", "БЕЗУПРЕЧНО!"]
             },
             en: {
-                langName: "English",
-                play: "▶ PLAY",
-                shopBtn: "🛒 Shop & Bonuses",
-                leaderboard: "🏆 Leaderboard",
-                settings: "⚙️ Settings",
-                howToPlay: "📖 How to play?",
-                resetProgress: "Reset all progress",
-                resetConfirm: "Start from level 1? All progress will be deleted.",
-                level: "LEVEL",
-                levelShort: "Lvl.",
-                chapter: "CHAPTER",
-                soundOn: "🔊 Sounds: ON",
-                soundOff: "🔇 Sounds: OFF",
-                musicOn: "🍃 Ambient: ON",
-                musicOff: "🔇 Ambient: OFF",
-                close: "CLOSE",
-                understood: "GOT IT",
-                menuHome: "🏠 Menu",
-                yourScore: "🏆 Score: ",
-                yourCoins: "Your coins: 💰 ",
-                wheelTitle: "Wheel of Fortune",
-                wheelDaily: "🎡 Daily Wheel",
-                spin: "SPIN",
-                spinning: "SPINNING...",
-                waitHours: (h, m) => `WAIT (${h}h ${m}m)`,
-                backToShop: "Back to Shop",
-                congrats: "CONGRATULATIONS!",
-                youWon: (item) => `You won: ${item}`,
-                boosterWon: (icon, name) => `You won a free booster:\n${icon} ${name}`,
-                noMovesTitle: "NO MOVES!",
-                noMovesDesc: "No more matching pairs available. Shuffle tiles or use a booster.",
-                noMovesNotice: "NO MOVES! Press Shuffle ➔",
-                shuffledNotice: "Tiles shuffled! ✨",
-                useBoosterBtn: "I'll use a booster",
-                mix: "MIX",
-                levelComplete: "LEVEL COMPLETE",
-                yourRank: (rank, score) => `🏆 Your rank: #${rank} (Score: ${score})`,
-                adTitle: "Ad Break",
-                adDesc: "Please wait...",
-                shopTitle: "🛒 SHOP",
-                shopBgTitle: "🎨 Beautiful Backgrounds",
-                shopSndTitle: "🎵 Nature Sounds",
-                equipped: "EQUIPPED",
-                equip: "Equip",
-                pieces: "pcs",
-                rulesTitle: "How to Play?",
-                rules1: "Find matching pairs of tiles to clear the board.",
-                rules2: "A tile is playable if <b>nothing is on top</b> and it is <b>free on the left OR right</b>.",
+                langName: "English", play: "▶ PLAY", shopBtn: "🛒 Shop & Bonuses", leaderboard: "🏆 Leaderboard", settings: "⚙️ Settings",
+                howToPlay: "📖 How to play?", resetProgress: "Reset all progress", resetConfirm: "Start from level 1? All progress will be deleted.",
+                level: "LEVEL", levelShort: "Lvl.", chapter: "CHAPTER", soundOn: "🔊 Sounds: ON", soundOff: "🔇 Sounds: OFF",
+                musicOn: "🍃 Ambient: ON", musicOff: "🔇 Ambient: OFF", close: "CLOSE", understood: "GOT IT", menuHome: "🏠 Menu",
+                yourScore: "🏆 Score: ", yourCoins: "Your coins: 💰 ", wheelTitle: "Wheel of Fortune", wheelDaily: "🎡 Daily Wheel",
+                spin: "SPIN", spinning: "SPINNING...", waitHours: (h, m) => `WAIT (${h}h ${m}m)`, backToShop: "Back to Shop",
+                congrats: "CONGRATULATIONS!", youWon: (item) => `You won: ${item}`, boosterWon: (icon, name) => `You won a free booster:\n${icon} ${name}`,
+                noMovesTitle: "NO MOVES!", noMovesDesc: "No more matching pairs available. Shuffle tiles or use a booster.",
+                noMovesNotice: "NO MOVES! Press Shuffle ➔", shuffledNotice: "Tiles shuffled! ✨", useBoosterBtn: "I'll use a booster",
+                mix: "MIX", levelComplete: "LEVEL COMPLETE", yourRank: (rank, score) => `🏆 Your rank: #${rank} (Score: ${score})`,
+                adTitle: "Ad Break", adDesc: "Please wait...", shopTitle: "🛒 SHOP", shopBgTitle: "🎨 Beautiful Backgrounds", shopSndTitle: "🎵 Nature Sounds",
+                equipped: "EQUIPPED", equip: "Equip", pieces: "pcs", rulesTitle: "How to Play?",
+                rules1: "Find matching pairs of tiles to clear the board.", rules2: "A tile is playable if <b>nothing is on top</b> and it is <b>free on the left OR right</b>.",
                 rules3: "Locks: revealing a locked tile and clicking elsewhere will <b>lock it back</b>! Train your memory.",
-                notEnoughCoins: "Not enough coins! Spin the Wheel of Fortune.",
-                diffEasy: "🟢 Easy",
-                diffMedium: "🟡 Medium",
-                diffHard: "🟠 Hard",
-                diffExpert: "🔴 EXPERT",
+                notEnoughCoins: "Not enough coins! Spin the Wheel of Fortune.", diffEasy: "🟢 Easy", diffMedium: "🟡 Medium", diffHard: "🟠 Hard", diffExpert: "🔴 EXPERT",
                 praises: ["MAGNIFICENT!", "BRILLIANT!", "GENIUS!", "PERFECT!", "EXCELLENT!", "MASTERFUL!", "STUNNING!", "FLAWLESS!"]
             },
             tr: {
-                langName: "Türkçe",
-                play: "▶ OYNA",
-                shopBtn: "🛒 Mağaza & Bonus",
-                leaderboard: "🏆 Sıralama",
-                settings: "⚙️ Ayarlar",
-                howToPlay: "📖 Nasıl Oynanır?",
-                resetProgress: "İlerlemeyi sıfırla",
-                resetConfirm: "1. seviyeden başlansın mı? Tüm ilerleme silinecek.",
-                level: "SEVİYE",
-                levelShort: "Sev.",
-                chapter: "BÖLÜM",
-                soundOn: "🔊 Ses: AÇIK",
-                soundOff: "🔇 Ses: KAPALI",
-                musicOn: "🍃 Ortam: AÇIK",
-                musicOff: "🔇 Ortam: KAPALI",
-                close: "KAPAT",
-                understood: "ANLADIM",
-                menuHome: "🏠 Menü",
-                yourScore: "🏆 Puan: ",
-                yourCoins: "Paralarınız: 💰 ",
-                wheelTitle: "Şans Çarkı",
-                wheelDaily: "🎡 Günlük Çark",
-                spin: "ÇEVİR",
-                spinning: "DÖNÜYOR...",
-                waitHours: (h, m) => `BEKLE (${h}s ${m}d)`,
-                backToShop: "Mağazaya Dön",
-                congrats: "TEBRİKLER!",
-                youWon: (item) => `Kazandınız: ${item}`,
-                boosterWon: (icon, name) => `Ücretsiz güçlendirici kazandınız:\n${icon} ${name}`,
-                noMovesTitle: "HAMLE YOK!",
-                noMovesDesc: "Eşleşen taş kalmadı. Taşları karıştırın veya güçlendirici kullanın.",
-                noMovesNotice: "HAMLE YOK! Karıştır'a basın ➔",
-                shuffledNotice: "Taşlar karıştırıldı! ✨",
-                useBoosterBtn: "Güçlendirici kullanacağım",
-                mix: "KARIŞTIR",
-                levelComplete: "SEVİYE TAMAMLANDI",
-                yourRank: (rank, score) => `🏆 Sıranız: #${rank} (Puan: ${score})`,
-                adTitle: "Reklam Arası",
-                adDesc: "Lütfen bekleyin...",
-                shopTitle: "🛒 MAĞAZA",
-                shopBgTitle: "🎨 Güzel Arka Planlar",
-                shopSndTitle: "🎵 Doğa Sesleri",
-                equipped: "SEÇİLDİ",
-                equip: "Seç",
-                pieces: "adet",
-                rulesTitle: "Nasıl Oynanır?",
-                rules1: "Tahtayı temizlemek için eşleşen taş çiftlerini bulun.",
-                rules2: "Üzerinde <b>başka taş yoksa</b> ve <b>solu VEYA sağı boşsa</b> taş seçilebilir.",
+                langName: "Türkçe", play: "▶ OYNA", shopBtn: "🛒 Mağaza & Bonus", leaderboard: "🏆 Sıralama", settings: "⚙️ Ayarlar",
+                howToPlay: "📖 Nasıl Oynanır?", resetProgress: "İlerlemeyi sıfırla", resetConfirm: "1. seviyeden başlansın mı? Tüm ilerleme silinecek.",
+                level: "SEVİYE", levelShort: "Sev.", chapter: "BÖLÜM", soundOn: "🔊 Ses: AÇIK", soundOff: "🔇 Ses: KAPALI",
+                musicOn: "🍃 Ortam: AÇIK", musicOff: "🔇 Ortam: KAPALI", close: "KAPAT", understood: "ANLADIM", menuHome: "🏠 Menü",
+                yourScore: "🏆 Puan: ", yourCoins: "Paralarınız: 💰 ", wheelTitle: "Şans Çarkı", wheelDaily: "🎡 Günlük Çark",
+                spin: "ÇEVİR", spinning: "DÖNÜYOR...", waitHours: (h, m) => `BEKLE (${h}s ${m}d)`, backToShop: "Mağazaya Dön",
+                congrats: "TEBRİKLER!", youWon: (item) => `Kazandınız: ${item}`, boosterWon: (icon, name) => `Ücretsiz güçlendirici kazandınız:\n${icon} ${name}`,
+                noMovesTitle: "HAMLE YOK!", noMovesDesc: "Eşleşen taş kalmadı. Taşları karıştırın veya güçlendirici kullanın.",
+                noMovesNotice: "HAMLE YOK! Karıştır'a basın ➔", shuffledNotice: "Taşlar karıştırıldı! ✨", useBoosterBtn: "Güçlendirici kullanacağım",
+                mix: "KARIŞTIR", levelComplete: "SEVİYE TAMAMLANDI", yourRank: (rank, score) => `🏆 Sıranız: #${rank} (Puan: ${score})`,
+                adTitle: "Reklam Arası", adDesc: "Lütfen bekleyin...", shopTitle: "🛒 MAĞAZA", shopBgTitle: "🎨 Güzel Arka Planlar", shopSndTitle: "🎵 Doğa Sesleri",
+                equipped: "SEÇİLDİ", equip: "Seç", pieces: "adet", rulesTitle: "Nasıl Oynanır?",
+                rules1: "Tahtayı temizlemek için eşleşen taş çiftlerini bulun.", rules2: "Üzerinde <b>başka taş yoksa</b> ve <b>solu VEYA sağı boşsa</b> taş seçilebilir.",
                 rules3: "Kilitler: Kilitli bir taşı açıp başka bir yere tıklarsanız taş <b>tekrar kilitlenir</b>!",
-                notEnoughCoins: "Yetersiz jeton! Şans Çarkını çevirin.",
-                diffEasy: "🟢 Kolay",
-                diffMedium: "🟡 Orta",
-                diffHard: "🟠 Zor",
-                diffExpert: "🔴 UZMAN",
+                notEnoughCoins: "Yetersiz jeton! Şans Çarkını çevirin.", diffEasy: "🟢 Kolay", diffMedium: "🟡 Orta", diffHard: "🟠 Zor", diffExpert: "🔴 UZMAN",
                 praises: ["HARİKA!", "MÜKEMMEL!", "KUSURSUZ!", "MUHTEŞEM!", "USTACA!", "PARLAK!", "İNANILMAZ!"]
             },
             es: {
-                langName: "Español",
-                play: "▶ JUGAR",
-                shopBtn: "🛒 Tienda y Bonos",
-                leaderboard: "🏆 Clasificación",
-                settings: "⚙️ Ajustes",
-                howToPlay: "📖 ¿Cómo jugar?",
-                resetProgress: "Reiniciar progreso",
-                resetConfirm: "¿Empezar desde el nivel 1? Se perderá todo el progreso.",
-                level: "NIVEL",
-                levelShort: "Niv.",
-                chapter: "CAPÍTULO",
-                soundOn: "🔊 Sonidos: SÍ",
-                soundOff: "🔇 Sonidos: NO",
-                musicOn: "🍃 Ambiente: SÍ",
-                musicOff: "🔇 Ambiente: NO",
-                close: "CERRAR",
-                understood: "ENTENDIDO",
-                menuHome: "🏠 Menú",
-                yourScore: "🏆 Puntos: ",
-                yourCoins: "Tus monedas: 💰 ",
-                wheelTitle: "Rueda de la Fortuna",
-                wheelDaily: "🎡 Rueda Diaria",
-                spin: "GIRAR",
-                spinning: "GIRANDO...",
-                waitHours: (h, m) => `ESPERA (${h}h ${m}m)`,
-                backToShop: "Volver a la tienda",
-                congrats: "¡FELICITACIONES!",
-                youWon: (item) => `Has ganado: ${item}`,
-                boosterWon: (icon, name) => `Has ganado un potenciador gratis:\n${icon} ${name}`,
-                noMovesTitle: "¡SIN MOVIMIENTOS!",
-                noMovesDesc: "No quedan parejas disponibles. Mezcla las fichas o usa un potenciador.",
-                noMovesNotice: "¡SIN MOVIMIENTOS! Pulsa Mezclar ➔",
-                shuffledNotice: "¡Fichas mezcladas! ✨",
-                useBoosterBtn: "Usaré un potenciador",
-                mix: "MEZCLAR",
-                levelComplete: "NIVEL COMPLETADO",
-                yourRank: (rank, score) => `🏆 Tu puesto: #${rank} (Puntos: ${score})`,
-                adTitle: "Pausa publicitaria",
-                adDesc: "Por favor espere...",
-                shopTitle: "🛒 TIENDA",
-                shopBgTitle: "🎨 Fondos Hermosos",
-                shopSndTitle: "🎵 Sonidos de la Naturaleza",
-                equipped: "EQUIPADO",
-                equip: "Equipar",
-                pieces: "uds",
-                rulesTitle: "¿Cómo jugar?",
-                rules1: "Encuentra parejas de fichas idénticas para despejar el tablero.",
-                rules2: "Una ficha está libre si <b>no tiene nada encima</b> y está <b>libre a la izquierda O derecha</b>.",
+                langName: "Español", play: "▶ JUGAR", shopBtn: "🛒 Tienda y Bonos", leaderboard: "🏆 Clasificación", settings: "⚙️ Ajustes",
+                howToPlay: "📖 ¿Cómo jugar?", resetProgress: "Reiniciar progreso", resetConfirm: "¿Empezar desde el nivel 1? Se perderá todo el progreso.",
+                level: "NIVEL", levelShort: "Niv.", chapter: "CAPÍTULO", soundOn: "🔊 Sonidos: SÍ", soundOff: "🔇 Sonidos: NO",
+                musicOn: "🍃 Ambiente: SÍ", musicOff: "🔇 Ambiente: NO", close: "CERRAR", understood: "ENTENDIDO", menuHome: "🏠 Menú",
+                yourScore: "🏆 Puntos: ", yourCoins: "Tus monedas: 💰 ", wheelTitle: "Rueda de la Fortuna", wheelDaily: "🎡 Rueda Diaria",
+                spin: "GIRAR", spinning: "GIRANDO...", waitHours: (h, m) => `ESPERA (${h}h ${m}m)`, backToShop: "Volver a la tienda",
+                congrats: "¡FELICITACIONES!", youWon: (item) => `Has ganado: ${item}`, boosterWon: (icon, name) => `Has ganado un potenciador gratis:\n${icon} ${name}`,
+                noMovesTitle: "¡SIN MOVIMIENTOS!", noMovesDesc: "No quedan parejas disponibles. Mezcla las fichas o usa un potenciador.",
+                noMovesNotice: "¡SIN MOVIMIENTOS! Pulsa Mezclar ➔", shuffledNotice: "¡Fichas mezcladas! ✨", useBoosterBtn: "Usaré un potenciador",
+                mix: "MEZCLAR", levelComplete: "NIVEL COMPLETADO", yourRank: (rank, score) => `🏆 Tu puesto: #${rank} (Puntos: ${score})`,
+                adTitle: "Pausa publicitaria", adDesc: "Por favor espere...", shopTitle: "🛒 TIENDA", shopBgTitle: "🎨 Fondos Hermosos", shopSndTitle: "🎵 Sonidos de la Naturaleza",
+                equipped: "EQUIPADO", equip: "Equipar", pieces: "uds", rulesTitle: "¿Cómo jugar?",
+                rules1: "Encuentra parejas de fichas idénticas para despejar el tablero.", rules2: "Una ficha está libre si <b>no tiene nada encima</b> y está <b>libre a la izquierda O derecha</b>.",
                 rules3: "Candados: Si abres una ficha bloqueada y tocas otra, <b>¡se volverá a cerrar!</b>",
-                notEnoughCoins: "¡No tienes suficientes monedas! Gira la Rueda.",
-                diffEasy: "🟢 Fácil",
-                diffMedium: "🟡 Medio",
-                diffHard: "🟠 Difícil",
-                diffExpert: "🔴 EXPERTO",
+                notEnoughCoins: "¡No tienes suficientes monedas! Gira la Rueda.", diffEasy: "🟢 Fácil", diffMedium: "🟡 Medio", diffHard: "🟠 Difícil", diffExpert: "🔴 EXPERTO",
                 praises: ["¡MAGNÍFICO!", "¡BRILLANTE!", "¡GENIAL!", "¡PERFECTO!", "¡EXCELENTE!", "¡MAJESTUOSO!", "¡FANTÁSTICO!"]
             }
         };
@@ -580,9 +425,82 @@
             return (I18N[currentLang] && I18N[currentLang][key]) || (I18N['ru'][key]) || key;
         }
 
-        // --- 🔒 YANDEX SDK & PLAYER API INITIALIZATION ---
-        let ys = null;
-        window.ysPlayer = null;
+        // --- 🔒 УНИВЕРСАЛЬНЫЙ АДАПТЕР ПЛАТФОРМ (Yandex + CrazyGames) ---
+        const Platform = {
+            name: 'local',
+            sdk: null,
+            init: async function(langCallback) {
+                // 1. Инициализация CrazyGames SDK
+                if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
+                    this.name = 'crazygames';
+                    this.sdk = window.CrazyGames.SDK;
+                    console.log("CrazyGames SDK activated");
+                    langCallback(null); // Язык определится из браузера
+                    return;
+                }
+                
+                // 2. Инициализация Yandex SDK
+                if (typeof YaGames !== 'undefined') {
+                    try {
+                        this.sdk = await YaGames.init();
+                        this.name = 'yandex';
+                        console.log("Yandex SDK activated");
+                        
+                        let sdkLanguage = (this.sdk.environment && this.sdk.environment.i18n) ? this.sdk.environment.i18n.lang : null;
+                        langCallback(sdkLanguage);
+                        
+                        if (this.sdk.features && this.sdk.features.LoadingAPI) { 
+                            this.sdk.features.LoadingAPI.ready(); 
+                        }
+                        
+                        try {
+                            window.ysPlayer = await this.sdk.getPlayer({ scopes: false });
+                            let data = await window.ysPlayer.getData();
+                            SafeStorage.syncFromCloud(data);
+                        } catch(e) { console.warn("Yandex Player API err", e); }
+                        return;
+                    } catch(e) { console.warn("Yandex init error", e); }
+                }
+                
+                // 3. Локальный запуск (если запущен просто HTML файл)
+                console.log("Local/Fallback environment");
+                langCallback(null);
+            },
+            gameplayStart: function() {
+                if (this.name === 'crazygames') { this.sdk.game.gameplayStart(); }
+            },
+            gameplayStop: function() {
+                if (this.name === 'crazygames') { this.sdk.game.gameplayStop(); }
+            },
+            showRewarded: function(callbacks) {
+                if (this.name === 'yandex' && this.sdk.adv) {
+                    this.sdk.adv.showRewardedVideo({
+                        callbacks: {
+                            onOpen: callbacks.onStart,
+                            onRewarded: callbacks.onReward,
+                            onClose: callbacks.onClose,
+                            onError: callbacks.onError || callbacks.onClose
+                        }
+                    });
+                } else if (this.name === 'crazygames') {
+                    this.sdk.ad.requestAd('rewarded', {
+                        adStarted: callbacks.onStart,
+                        adFinished: () => { callbacks.onReward(); callbacks.onClose(); },
+                        adError: (err) => { console.warn("CG Ad Error", err); if(callbacks.onError) callbacks.onError(); callbacks.onClose(); }
+                    });
+                } else {
+                    // Имитация просмотра рекламы для локальных тестов
+                    const adScreen = document.getElementById('ad-screen');
+                    if(adScreen) adScreen.style.display = 'flex';
+                    if(callbacks.onStart) callbacks.onStart();
+                    setTimeout(() => {
+                        if(adScreen) adScreen.style.display = 'none';
+                        if(callbacks.onReward) callbacks.onReward();
+                        if(callbacks.onClose) callbacks.onClose();
+                    }, 1000);
+                }
+            }
+        };
 
         document.addEventListener('contextmenu', event => event.preventDefault());
 
@@ -605,33 +523,12 @@
             
             applyLanguageUI();
             updateMenuLevelText();
-            
-            if (ys && ys.features && ys.features.LoadingAPI) { 
-                ys.features.LoadingAPI.ready(); 
-            }
         }
 
-        try { 
-            YaGames.init().then(ysdk => { 
-                ys = ysdk; 
-                let sdkLanguage = (ys.environment && ys.environment.i18n) ? ys.environment.i18n.lang : null;
-                initGameLanguageAndUI(sdkLanguage);
-                
-                ys.getPlayer({ scopes: false }).then(_player => {
-                    window.ysPlayer = _player;
-                    return _player.getData();
-                }).then(data => {
-                    SafeStorage.syncFromCloud(data);
-                }).catch(err => console.log("Yandex Player API init failed", err));
-                
-                console.log("Yandex SDK initialized"); 
-            }).catch(e => {
-                console.warn("Yandex SDK not found");
-                initGameLanguageAndUI(null);
-            }); 
-        } catch(e) {
-            initGameLanguageAndUI(null);
-        }
+        // Запуск универсального инициализатора
+        Platform.init((sdkLang) => {
+            initGameLanguageAndUI(sdkLang);
+        });
 
         const SafeStorage = {
             data: {},
@@ -640,12 +537,12 @@
             },
             set: function(key, value) { 
                 this.data[key] = String(value);
-                try { localStorage.setItem(key, value); } catch(e) { console.warn("Storage error", e); }
+                try { localStorage.setItem(key, value); } catch(e) {}
                 if (window.ysPlayer) window.ysPlayer.setData(this.data).catch(() => {});
             },
             remove: function(key) { 
                 delete this.data[key];
-                try { localStorage.removeItem(key); } catch(e) { console.warn("Storage error", e); }
+                try { localStorage.removeItem(key); } catch(e) {}
                 if (window.ysPlayer) window.ysPlayer.setData(this.data).catch(() => {});
             },
             syncFromCloud: function(cloudData) {
@@ -1154,7 +1051,6 @@
                 diffBadge.style.color = (diff.color === "#f1c40f") ? "#000" : "#fff";
             }
 
-            // ВИЗУАЛЬНАЯ БЛОКИРОВКА СТРЕЛОЧЕК
             const btnNextMenu = document.getElementById('btn-next-level');
             const btnPrevMenu = document.getElementById('btn-prev-level');
             const btnNextHud = document.getElementById('btn-hud-next');
@@ -1168,16 +1064,21 @@
         
         updateMenuLevelText(); updateScoreDisplay(); updateBoostersUI();
         
-        document.getElementById('btn-play').addEventListener('click', () => { AudioSys.init(); document.getElementById('main-menu').style.display = 'none'; document.getElementById('game-screen').style.display = 'flex'; initGame(); });
+        document.getElementById('btn-play').addEventListener('click', () => { 
+            AudioSys.init(); 
+            Platform.gameplayStart(); // Уведомляем CrazyGames о старте уровня
+            document.getElementById('main-menu').style.display = 'none'; 
+            document.getElementById('game-screen').style.display = 'flex'; 
+            initGame(); 
+        });
         
-        // КНОПКИ ПЕРЕКЛЮЧЕНИЯ УРОВНЕЙ С ПРОВЕРКОЙ БЛОКИРОВКИ
         document.getElementById('btn-prev-level').addEventListener('click', () => { 
             if(currentLevel > 1) { 
                 currentLevel--; SafeStorage.set('mahjong_level', currentLevel); updateMenuLevelText(); updateBoostersUI(); 
             }
         });
         document.getElementById('btn-next-level').addEventListener('click', () => { 
-            if(currentLevel < unlockedLevel) { // Проверка: пройден ли уровень
+            if(currentLevel < unlockedLevel) { 
                 currentLevel++; SafeStorage.set('mahjong_level', currentLevel); updateMenuLevelText(); updateBoostersUI(); 
             }
         });
@@ -1188,7 +1089,7 @@
             }
         });
         document.getElementById('btn-hud-next').addEventListener('click', () => { 
-            if(currentLevel < unlockedLevel) { // Проверка: пройден ли уровень
+            if(currentLevel < unlockedLevel) { 
                 currentLevel++; SafeStorage.set('mahjong_level', currentLevel); initGame(); 
             }
         });
@@ -1207,7 +1108,13 @@
         
         document.getElementById('btn-rules').addEventListener('click', () => { AudioSys.init(); document.getElementById('rules-modal').style.display = 'flex'; });
         document.getElementById('btn-close-rules').addEventListener('click', () => document.getElementById('rules-modal').style.display = 'none');
-        document.getElementById('btn-menu').addEventListener('click', () => { document.getElementById('game-screen').style.display = 'none'; document.getElementById('main-menu').style.display = 'flex'; updateMenuLevelText(); });
+        
+        document.getElementById('btn-menu').addEventListener('click', () => { 
+            Platform.gameplayStop(); // Уведомляем CrazyGames о выходе в меню
+            document.getElementById('game-screen').style.display = 'none'; 
+            document.getElementById('main-menu').style.display = 'flex'; 
+            updateMenuLevelText(); 
+        });
 
         function updateScoreDisplay() { 
             let elScore = document.getElementById('hud-score'); let elCoins = document.getElementById('hud-coins');
@@ -1369,10 +1276,11 @@
         function levelComplete() {
             if (window.isLevelCompleting) return; 
             window.isLevelCompleting = true; 
+            
+            Platform.gameplayStop(); // Уведомляем платформу о конце уровня
 
             try { AudioSys.playWin(); } catch(e){}
             
-            // ОБНОВЛЕНИЕ ПРОГРЕССА
             try { 
                 if (currentLevel >= unlockedLevel) {
                     unlockedLevel = currentLevel + 1;
@@ -1387,6 +1295,7 @@
             let fallbackTimer = setTimeout(() => {
                 const overlay = document.getElementById('level-complete-overlay');
                 if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }
+                Platform.gameplayStart();
                 initGame(); 
             }, 3500);
 
@@ -1415,6 +1324,7 @@
                     setTimeout(() => {
                         if (overlay) overlay.style.display = 'none';
                         clearTimeout(fallbackTimer);
+                        Platform.gameplayStart();
                         initGame(); 
                     }, 500);
                 }, 3000); 
@@ -1644,25 +1554,13 @@
                 } catch(e) { console.error("Ошибка микса:", e); }
             };
 
-            if (ys && ys.adv) {
-                if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend();
-                ys.adv.showRewardedVideo({
-                    callbacks: {
-                        onOpen: () => { if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend(); },
-                        onRewarded: () => { triggerShuffle(); },
-                        onClose: () => { if (AudioSys.enabled || AudioSys.musicEnabled) AudioSys.ctx.resume(); },
-                        onError: () => { triggerShuffle(); if (AudioSys.enabled || AudioSys.musicEnabled) AudioSys.ctx.resume(); }
-                    }
-                });
-            } else {
-                const ad = document.getElementById('ad-screen'); if(ad) ad.style.display = 'flex'; 
-                if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend();
-                setTimeout(() => { 
-                    if(ad) ad.style.display = 'none'; 
-                    if (AudioSys.enabled || AudioSys.musicEnabled) AudioSys.ctx.resume();
-                    triggerShuffle();
-                }, 1000); 
-            }
+            // Вызов рекламы через Адаптер Платформ
+            if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend();
+            Platform.showRewarded({
+                onStart: () => {},
+                onReward: () => { triggerShuffle(); },
+                onClose: () => { if (AudioSys.enabled || AudioSys.musicEnabled) AudioSys.ctx.resume(); }
+            });
         }
 
         function updateBoostersUI() {
