@@ -40,9 +40,9 @@
         .particle { position: absolute; background-color: #f1c40f; border-radius: 50%; pointer-events: none; box-shadow: 0 0 10px #f1c40f, 0 0 20px #f1c40f; animation: floatUp 15s infinite linear; opacity: 0; z-index: 1; }
         @keyframes floatUp { 0% { transform: translateY(100vh) scale(0); opacity: 0; } 20% { opacity: 0.8; } 80% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1); opacity: 0; } }
         
-        #main-menu h1 { font-family: 'Russo One', sans-serif; font-size: clamp(32px, 8vw, 48px); line-height: 1.1; margin-bottom: 20px; background: linear-gradient(180deg, #fff3b0 0%, #f1c40f 50%, #b7950b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; letter-spacing: 2px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8)); z-index: 2; }
+        #main-menu h1 { font-family: 'Russo One', sans-serif; font-size: clamp(32px, 8vw, 48px); line-height: 1.1; margin-bottom: 20px; background: linear-gradient(180deg, #fff3b0 0%, #f1c40f 50%, #b7950b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; letter-spacing: 2px; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8)); z-index: 2; position: relative; }
         
-        #level-controls { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; z-index: 2; }
+        #level-controls { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; z-index: 2; position: relative; }
         #menu-level-badge { background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(241, 196, 15, 0.5); box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 5px 15px rgba(0,0,0,0.5); border-radius: 20px; padding: 15px 30px 10px; backdrop-filter: blur(5px); display: flex; flex-direction: column; align-items: center; min-width: 250px; }
         #menu-level-text { font-family: 'Russo One', sans-serif; font-size: 24px; color: #2ecc71; text-shadow: 0 2px 5px rgba(0,0,0,1); letter-spacing: 1px; white-space: nowrap; }
         #menu-chapter-title { font-size: 13px; color: #f1c40f; margin-top: 5px; font-weight: bold; text-shadow: 0 1px 3px rgba(0,0,0,1); text-align: center; }
@@ -50,19 +50,19 @@
         #menu-level-preview { width: 100px; height: 100px; position: relative; margin-top: 15px; margin-bottom: 5px; transform-style: preserve-3d; }
         .preview-tile { position: absolute; width: 20%; height: 20%; left: calc(var(--x) * 10%); top: calc(var(--y) * 10%); margin-top: calc(var(--z) * -4px); margin-left: calc(var(--z) * -2px); background: var(--tileBg); border: 1px solid rgba(255,255,255,0.4); border-radius: 3px; box-shadow: 1px 1px 3px rgba(0,0,0,0.9); pointer-events: none; }
 
-        .btn-arrow { background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(241, 196, 15, 0.5); color: #f1c40f; font-size: 20px; border-radius: 15px; padding: 10px 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: all 0.2s ease; }
+        .btn-arrow { background: rgba(0, 0, 0, 0.4); border: 2px solid rgba(241, 196, 15, 0.5); color: #f1c40f; font-size: 20px; border-radius: 15px; padding: 10px 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: all 0.2s ease; position: relative; z-index: 2; }
         .btn-arrow:active { transform: scale(0.9); background: rgba(241, 196, 15, 0.3); }
 
-        .btn-massive { background: linear-gradient(180deg, #ffdf00 0%, #f1c40f 50%, #d4ac0d 100%); color: #4b0d18; border: none; padding: 15px 50px; font-family: 'Russo One', sans-serif; font-size: 26px; font-weight: 900; border-radius: 50px; box-shadow: 0 8px 0 #9c7e07, 0 15px 20px rgba(0,0,0,0.7), inset 0 2px 5px rgba(255,255,255,0.8); cursor: pointer; transition: all 0.1s; touch-action: manipulation; user-select: none; margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; letter-spacing: 2px; z-index: 2; width: auto; min-width: 220px; }
+        .btn-massive { background: linear-gradient(180deg, #ffdf00 0%, #f1c40f 50%, #d4ac0d 100%); color: #4b0d18; border: none; padding: 15px 50px; font-family: 'Russo One', sans-serif; font-size: 26px; font-weight: 900; border-radius: 50px; box-shadow: 0 8px 0 #9c7e07, 0 15px 20px rgba(0,0,0,0.7), inset 0 2px 5px rgba(255,255,255,0.8); cursor: pointer; transition: all 0.1s; touch-action: manipulation; user-select: none; margin-top: 20px; margin-bottom: 20px; display: flex; justify-content: center; align-items: center; letter-spacing: 2px; position: relative; z-index: 2; width: auto; min-width: 220px; }
         .btn-massive:active { transform: translateY(8px) !important; box-shadow: 0 0 0 #9c7e07, 0 5px 10px rgba(0,0,0,0.7), inset 0 2px 5px rgba(255,255,255,0.8); }
 
-        .btn-wheel { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); color: white; border: 2px solid #d4af37; padding: 12px 30px; font-family: 'Russo One', sans-serif; font-size: 18px; border-radius: 30px; box-shadow: 0 6px 0 #5b2c6f, 0 10px 15px rgba(0,0,0,0.7); margin-bottom: 15px; cursor: pointer; transition: all 0.1s; z-index: 2; width: 220px; display: flex; justify-content: center; align-items: center;}
+        .btn-wheel { background: linear-gradient(180deg, #9b59b6 0%, #8e44ad 100%); color: white; border: 2px solid #d4af37; padding: 12px 30px; font-family: 'Russo One', sans-serif; font-size: 18px; border-radius: 30px; box-shadow: 0 6px 0 #5b2c6f, 0 10px 15px rgba(0,0,0,0.7); margin-bottom: 15px; cursor: pointer; transition: all 0.1s; position: relative; z-index: 2; width: 220px; display: flex; justify-content: center; align-items: center;}
         .btn-wheel:active { transform: translateY(6px); box-shadow: 0 0 0 #5b2c6f, 0 5px 10px rgba(0,0,0,0.7); }
 
-        .btn-menu-small { background: transparent; color: #95a5a6; border: 2px solid #95a5a6; padding: 10px 25px; font-family: sans-serif; font-size: 16px; font-weight: bold; border-radius: 20px; z-index: 2; transition: all 0.2s; cursor: pointer; width: 100%;}
+        .btn-menu-small { background: transparent; color: #95a5a6; border: 2px solid #95a5a6; padding: 10px 25px; font-family: sans-serif; font-size: 16px; font-weight: bold; border-radius: 20px; position: relative; z-index: 2; transition: all 0.2s; cursor: pointer; width: 100%;}
         .btn-menu-small:active { background: rgba(255,255,255,0.1); }
 
-        #btn-reset { margin-top: 15px; color: rgba(231, 76, 60, 0.8); text-decoration: underline; cursor: pointer; font-size: 14px; font-weight: bold; z-index: 2; padding: 10px; }
+        #btn-reset { margin-top: 15px; color: rgba(231, 76, 60, 0.8); text-decoration: underline; cursor: pointer; font-size: 14px; font-weight: bold; position: relative; z-index: 2; padding: 10px; }
 
         #game-screen { display: none; flex-direction: column; align-items: center; width: 100%; height: 100%; padding-top: 15px; z-index: 10; position: relative; }
         #top-bar { width: 100%; max-width: 500px; padding: 0 15px; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
@@ -79,7 +79,7 @@
         .stats-container { display: flex; gap: 15px; margin-top: 4px; align-items: center;}
         #hud-score { font-family: 'Russo One', sans-serif; font-size: 15px; color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8); transition: color 0.3s; }
         #hud-coins { font-family: 'Russo One', sans-serif; font-size: 15px; color: #f1c40f; text-shadow: 0 2px 4px rgba(0,0,0,0.8); transition: color 0.3s; }
-        #hud-difficulty { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 10px; margin-top: 4px; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); box-shadow: 0 2px 4px rgba(0,0,0,0.5); white-space: nowrap; }
+        #hud-difficulty { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 10px; margin-top: 4px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); box-shadow: 0 2px 4px rgba(0,0,0,0.5); white-space: nowrap; }
 
         #progress-container { width: 90vw; max-width: 400px; height: 8px; background-color: rgba(0,0,0,0.5); border-radius: 4px; margin-bottom: 5px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), 0 1px 1px rgba(255,255,255,0.1); }
         #progress-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #ffdf00, #f1c40f, #fff3b0); box-shadow: 0 0 10px rgba(241, 196, 15, 0.8); transition: width 0.4s ease-out; }
@@ -114,7 +114,7 @@
         .flip-anim { animation: flipTileIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         @keyframes flipTileIn { 0% { transform: translateY(-4vw) scale(1.1) rotateY(-90deg); } 100% { transform: translateY(0) scale(1) rotateY(0deg); } }
         .flip-anim-back { animation: flipTileOut 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes flipTileOut { 0% { transform: translateY(0) scale(1) rotateY(0deg); } 100% { transform: translateY(-4vw) scale(1.1) rotateY(90deg); } }
+        @keyframes flipTileOut { 0% { transform: translateY(0) scale(1) rotateY(90deg); } 100% { transform: translateY(-4vw) scale(1.1) rotateY(90deg); } }
 
         #tutorial-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); z-index: 9000; pointer-events: none; transition: opacity 0.3s; }
         #tutorial-finger { display: none; position: absolute; font-size: 60px; z-index: 9002; pointer-events: none; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.8)); animation: poke 0.8s infinite alternate cubic-bezier(0.25, 0.46, 0.45, 0.94); }
@@ -246,7 +246,7 @@
             <button id="btn-next-level" class="btn-arrow">▶</button>
         </div>
         <button id="btn-play" class="btn-massive">▶ ИГРАТЬ</button>
-        <div style="display: flex; flex-direction: column; gap: 10px; z-index: 2; margin-bottom: 10px; width: 220px;">
+        <div style="display: flex; flex-direction: column; gap: 10px; z-index: 2; margin-bottom: 10px; width: 220px; position: relative;">
             <button id="btn-open-shop" class="btn-menu-small" style="margin-bottom: 0; background: rgba(155, 89, 182, 0.3); color: #e0aaff; border-color: #9b59b6;">🛒 Магазин & Бонусы</button>
             <button id="btn-leaderboard" class="btn-menu-small" style="margin-bottom: 0; color: #f1c40f; border-color: #f1c40f;">🏆 Рейтинг</button>
             <button id="btn-settings" class="btn-menu-small" style="margin-bottom: 0;">⚙️ Настройки</button>
@@ -468,7 +468,6 @@
             { type: 'booster', id: 'light', text: "⚡", name: { ru: "Молния", en: "Lightning", tr: "Yıldırım", es: "Rayo" }, color: "#1abc9c" } 
         ];
 
-        // ДОБАВЛЕНО: возвращена недостающая переменная для расчета углов рулетки
         const sliceAngle = 360 / wheelPrizes.length;
 
         let freeBoosters = {hint:0, undo:0, bomb:0, light:0};
@@ -571,38 +570,48 @@
             toggleMusic: function() { this.musicEnabled = !this.musicEnabled; SafeStorage.set('mahjong_music', this.musicEnabled); const btnSet = document.getElementById('btn-settings-music'); if (btnSet) btnSet.innerText = this.musicEnabled ? t('musicOn') : t('musicOff'); if (this.musicEnabled) { if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume(); this.startAmbient(); } else { this.stopAmbient(); } }
         };
 
+        // БРОНЯ: Оборачиваем все вызовы SDK в try...catch, чтобы игра не зависала при сбоях платформы
         const Platform = {
             name: 'local', sdk: null,
             init: async function(langCallback) {
-                if (typeof vkBridge !== 'undefined' && window.location.search.includes('vk_')) {
-                    try { await vkBridge.send("VKWebAppInit"); this.name = 'vk'; this.sdk = vkBridge; console.log("VK SDK activated"); let urlParams = new URLSearchParams(window.location.search); let vkLang = urlParams.get('language') || urlParams.get('lang'); langCallback(vkLang); return; } catch(e) {}
-                }
-                if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
-                    this.name = 'crazygames'; this.sdk = window.CrazyGames.SDK; console.log("CrazyGames SDK activated"); langCallback(null); return;
-                }
-                if (typeof YaGames !== 'undefined') {
-                    try {
+                try {
+                    if (typeof vkBridge !== 'undefined' && window.location.search.includes('vk_')) {
+                        await vkBridge.send("VKWebAppInit"); this.name = 'vk'; this.sdk = vkBridge; console.log("VK SDK activated"); let urlParams = new URLSearchParams(window.location.search); let vkLang = urlParams.get('language') || urlParams.get('lang'); langCallback(vkLang); return;
+                    }
+                    if (typeof window.CrazyGames !== 'undefined' && window.CrazyGames.SDK) {
+                        this.name = 'crazygames'; this.sdk = window.CrazyGames.SDK; console.log("CrazyGames SDK activated"); langCallback(null); return;
+                    }
+                    if (typeof YaGames !== 'undefined') {
                         this.sdk = await YaGames.init(); this.name = 'yandex'; console.log("Yandex SDK activated");
                         let sdkLanguage = (this.sdk.environment && this.sdk.environment.i18n) ? this.sdk.environment.i18n.lang : null;
                         langCallback(sdkLanguage);
                         if (this.sdk.features && this.sdk.features.LoadingAPI) { this.sdk.features.LoadingAPI.ready(); }
                         try { window.ysPlayer = await this.sdk.getPlayer({ scopes: false }); let data = await window.ysPlayer.getData(); SafeStorage.syncFromCloud(data); } catch(e) {}
                         return;
-                    } catch(e) {}
-                }
+                    }
+                } catch(e) { console.warn("Platform init error:", e); }
                 console.log("Local environment"); langCallback(null);
             },
-            gameplayStart: function() { if (this.name === 'crazygames') { this.sdk.game.gameplayStart(); } },
-            gameplayStop: function() { if (this.name === 'crazygames') { this.sdk.game.gameplayStop(); } },
+            gameplayStart: function() { 
+                try { if (this.name === 'crazygames' && this.sdk && this.sdk.game) this.sdk.game.gameplayStart(); } catch(e) { console.warn("SDK start error ignored"); } 
+            },
+            gameplayStop: function() { 
+                try { if (this.name === 'crazygames' && this.sdk && this.sdk.game) this.sdk.game.gameplayStop(); } catch(e) { console.warn("SDK stop error ignored"); } 
+            },
             showRewarded: function(callbacks) {
-                if (this.name === 'yandex' && this.sdk.adv) {
-                    this.sdk.adv.showRewardedVideo({ callbacks: { onOpen: callbacks.onStart, onRewarded: callbacks.onReward, onClose: callbacks.onClose, onError: callbacks.onError || callbacks.onClose } });
-                } else if (this.name === 'crazygames') {
-                    this.sdk.ad.requestAd('rewarded', { adStarted: callbacks.onStart, adFinished: () => { callbacks.onReward(); callbacks.onClose(); }, adError: (err) => { if(callbacks.onError) callbacks.onError(); callbacks.onClose(); } });
-                } else if (this.name === 'vk') {
-                    if(callbacks.onStart) callbacks.onStart();
-                    this.sdk.send("VKWebAppShowNativeAds", {ad_format:"reward"}).then(data => { if (data.result) { if(callbacks.onReward) callbacks.onReward(); } else { if(callbacks.onError) callbacks.onError(); } if(callbacks.onClose) callbacks.onClose(); }).catch(err => { if(callbacks.onError) callbacks.onError(); if(callbacks.onClose) callbacks.onClose(); });
-                } else {
+                try {
+                    if (this.name === 'yandex' && this.sdk && this.sdk.adv) {
+                        this.sdk.adv.showRewardedVideo({ callbacks: { onOpen: callbacks.onStart, onRewarded: callbacks.onReward, onClose: callbacks.onClose, onError: callbacks.onError || callbacks.onClose } });
+                    } else if (this.name === 'crazygames' && this.sdk && this.sdk.ad) {
+                        this.sdk.ad.requestAd('rewarded', { adStarted: callbacks.onStart, adFinished: () => { callbacks.onReward(); callbacks.onClose(); }, adError: (err) => { if(callbacks.onError) callbacks.onError(); callbacks.onClose(); } });
+                    } else if (this.name === 'vk' && this.sdk) {
+                        if(callbacks.onStart) callbacks.onStart();
+                        this.sdk.send("VKWebAppShowNativeAds", {ad_format:"reward"}).then(data => { if (data.result) { if(callbacks.onReward) callbacks.onReward(); } else { if(callbacks.onError) callbacks.onError(); } if(callbacks.onClose) callbacks.onClose(); }).catch(err => { if(callbacks.onError) callbacks.onError(); if(callbacks.onClose) callbacks.onClose(); });
+                    } else {
+                        throw new Error("No SDK available");
+                    }
+                } catch(e) {
+                    console.warn("Ad blocked or failed", e);
                     const adScreen = document.getElementById('ad-screen'); if(adScreen) adScreen.style.display = 'flex';
                     if(callbacks.onStart) callbacks.onStart();
                     setTimeout(() => { if(adScreen) adScreen.style.display = 'none'; if(callbacks.onReward) callbacks.onReward(); if(callbacks.onClose) callbacks.onClose(); }, 1000);
@@ -1059,7 +1068,21 @@
         window.addEventListener("blur", () => { if (AudioSys.ctx && AudioSys.ctx.state === 'running') AudioSys.ctx.suspend(); });
         window.addEventListener("focus", () => { if (AudioSys.ctx && AudioSys.ctx.state === 'suspended' && (AudioSys.enabled || AudioSys.musicEnabled)) AudioSys.ctx.resume(); });
 
-        document.getElementById('btn-play').addEventListener('click', () => { AudioSys.init(); Platform.gameplayStart(); document.getElementById('main-menu').style.display = 'none'; document.getElementById('game-screen').style.display = 'flex'; initGame(); });
+        // БРОНЯ: Оборачиваем старт игры в безопасный блок
+        document.getElementById('btn-play').addEventListener('click', () => { 
+            try {
+                AudioSys.init(); 
+                Platform.gameplayStart(); 
+            } catch(e) {
+                console.warn("Play click warning:", e);
+            } finally {
+                // Это сработает в любом случае, даже если платформа выдаст ошибку!
+                document.getElementById('main-menu').style.display = 'none'; 
+                document.getElementById('game-screen').style.display = 'flex'; 
+                initGame();
+            }
+        });
+
         document.getElementById('btn-prev-level').addEventListener('click', () => { if(currentLevel > 1) { currentLevel--; SafeStorage.set('mahjong_level', currentLevel); updateMenuLevelText(); updateBoostersUI(); }});
         document.getElementById('btn-next-level').addEventListener('click', () => { if(currentLevel < unlockedLevel) { currentLevel++; SafeStorage.set('mahjong_level', currentLevel); updateMenuLevelText(); updateBoostersUI(); }});
         document.getElementById('btn-hud-prev').addEventListener('click', () => { if(currentLevel > 1) { currentLevel--; SafeStorage.set('mahjong_level', currentLevel); initGame(); }});
