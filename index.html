@@ -468,6 +468,9 @@
             { type: 'booster', id: 'light', text: "⚡", name: { ru: "Молния", en: "Lightning", tr: "Yıldırım", es: "Rayo" }, color: "#1abc9c" } 
         ];
 
+        // ДОБАВЛЕНО: возвращена недостающая переменная для расчета углов рулетки
+        const sliceAngle = 360 / wheelPrizes.length;
+
         let freeBoosters = {hint:0, undo:0, bomb:0, light:0};
         let userInventory = ["bg0", "bg1", "bg2", "snd0", "snd1", "snd2"];
         let eqBg = 'bg0';
@@ -1104,7 +1107,6 @@
         document.getElementById('bst-light').addEventListener('click', () => { buyBooster('bst-light', 600, () => { if (activeTiles.length === 0) return; let randomTile = activeTiles[Math.floor(Math.random() * activeTiles.length)]; let targets = activeTiles.filter(t => t.symbol === randomTile.symbol); targets.forEach(t => { t.isMatched = true; spawnSmartBurst(t.el, t.symbol); t.el.classList.add('matched'); setTimeout(() => { if(t.el) t.el.style.display = 'none'; }, 450); }); activeTiles = activeTiles.filter(t => t.symbol !== randomTile.symbol); matchHistory = []; updateFreeState(); updateProgressBar(); if (activeTiles.length === 0) { levelComplete(); } }); });
 
         // --- 5. ТОЧКА ВХОДА (ПОЛНАЯ ЗАГРУЗКА И СТАРТ) ---
-        // Инициализируем базовые состояния ДО подгрузки облака
         let savedLvl = SafeStorage.get('mahjong_level'); if (savedLvl && !isNaN(parseInt(savedLvl))) currentLevel = parseInt(savedLvl); else currentLevel = 1;
         let savedUnLvl = SafeStorage.get('mahjong_unlocked_level'); if (savedUnLvl && !isNaN(parseInt(savedUnLvl))) unlockedLevel = parseInt(savedUnLvl); else unlockedLevel = currentLevel;
         let savedScore = SafeStorage.get('mahjong_score'); if (savedScore && !isNaN(parseInt(savedScore))) totalScore = parseInt(savedScore); else totalScore = 0;
@@ -1115,8 +1117,6 @@
         createParticles();
         renderWheel();
 
-        // Запуск платформы - перенесен в самый конец файла для гарантии, 
-        // что все переменные (TDZ) и функции уже существуют в памяти.
         Platform.init((sdkLang) => {
             initGameLanguageAndUI(sdkLang);
         });
